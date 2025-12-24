@@ -1,5 +1,8 @@
 allprojects {
     repositories {
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
         google()
         mavenCentral()
     }
@@ -17,8 +20,8 @@ subprojects {
         if (project.plugins.hasPlugin("com.android.application") ||
                 project.plugins.hasPlugin("com.android.library")) {
             project.android {
-                compileSdkVersion 34
-                buildToolsVersion "34.0.0"
+                compileSdkVersion 35
+                buildToolsVersion "35.0.0"
             }
         }
     }
@@ -27,6 +30,15 @@ subprojects {
 
 subprojects {
     project.evaluationDependsOn(':app')
+    project.configurations.all {
+        resolutionStrategy {
+            force 'androidx.browser:browser:1.8.0'
+            force 'androidx.activity:activity-ktx:1.9.3'
+            force 'androidx.activity:activity:1.9.3'
+            force 'androidx.core:core-ktx:1.15.0'
+            force 'androidx.core:core:1.15.0'
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
