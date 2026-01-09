@@ -8,10 +8,15 @@ import 'package:localsend_app/pages_linkdrop/widget/pulse_ripple.dart';
 import 'package:localsend_app/provider/network/scan_facade.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/file_picker.dart';
+import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/widget/dialogs/send_mode_help_dialog.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
+/// 发送页面
+///
+/// 支持文件选择、设备扫描和文件发送
+/// 提供多种发送模式：单个接收者、多个接收者、通过链接分享
 class SendPage extends StatelessWidget {
   const SendPage({super.key});
 
@@ -20,7 +25,7 @@ class SendPage extends StatelessWidget {
     final vm = context.watch(sendTabVmProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Calculate file counts
+    // 统计文件类型数量
     int imageCount = 0;
     int videoCount = 0;
     int docCount = 0;
@@ -48,7 +53,7 @@ class SendPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: Column(
         children: [
-          // Top Area: Drop Zone & File Selection
+          // 顶部区域：文件选择区
           Expanded(
             flex: 4,
             child: Container(
@@ -64,12 +69,12 @@ class SendPage extends StatelessWidget {
                 ),
               ),
               child: InkWell(
-                onTap: () => _pickFiles(context, FilePickerOption.media),
+                onTap: () => _pickFiles(context),
                 borderRadius: BorderRadius.circular(24),
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Pulse Animation
+                    // 脉冲动画
                     PulseRipple(
                       color: LinkDropColors.teal500,
                       child: Container(
@@ -89,16 +94,14 @@ class SendPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
-                    // Text Info
+
+                    // 文本信息
                     Positioned(
                       bottom: 40,
                       child: Column(
                         children: [
                           Text(
-                            vm.selectedFiles.isEmpty 
-                                ? 'Tap to select files' 
-                                : '${vm.selectedFiles.length} files selected',
+                            vm.selectedFiles.isEmpty ? 'Tap to select files' : '${vm.selectedFiles.length} files selected',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -125,12 +128,12 @@ class SendPage extends StatelessWidget {
             ),
           ),
 
-          // Bottom Area: Device Discovery
+          // 底部区域：设备发现
           Expanded(
             flex: 6,
             child: Column(
               children: [
-                // Control Bar
+                // 控制栏
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   child: Row(
@@ -164,7 +167,7 @@ class SendPage extends StatelessWidget {
                   ),
                 ),
 
-                // Device List
+                // 设备列表
                 Expanded(
                   child: vm.nearbyDevices.isEmpty
                       ? Center(
@@ -196,7 +199,12 @@ class SendPage extends StatelessWidget {
     );
   }
 
-  void _pickFiles(BuildContext context, FilePickerOption option) {
+  /// 选择文件
+  ///
+  /// 根据平台自动选择合适的文件选择器
+  /// 移动端使用媒体选择器，PC端使用通用文件选择器
+  void _pickFiles(BuildContext context) {
+    final option = checkPlatform([TargetPlatform.android, TargetPlatform.iOS]) ? FilePickerOption.media : FilePickerOption.file;
     context.ref.global.dispatchAsync(
       PickFileAction(
         option: option,
@@ -206,6 +214,9 @@ class SendPage extends StatelessWidget {
   }
 }
 
+/// 控制按钮组件
+///
+/// 用于显示操作按钮（扫描、手动输入、收藏、发送模式）
 class _ControlButton extends StatelessWidget {
   final IconData icon;
   final String label;

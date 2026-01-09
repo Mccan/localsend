@@ -11,6 +11,10 @@ import 'package:localsend_app/util/native/pick_directory_path.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
+/// 设置页面
+///
+/// 提供应用程序的各种设置选项
+/// 包括常规设置、接收设置和网络设置
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -24,7 +28,7 @@ class SettingsPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: Column(
         children: [
-          // Header
+          // 顶部标题栏
           Padding(
             padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
             child: Row(
@@ -51,7 +55,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                // Advanced Toggle
+                // 高级设置开关
                 Row(
                   children: [
                     Text(
@@ -73,12 +77,12 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
 
-          // Main Content
+          // 主内容区域
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               children: [
-                // General
+                // 常规设置
                 SettingsGroup(
                   title: t.settingsTab.general.title,
                   isDark: isDark,
@@ -145,7 +149,7 @@ class SettingsPage extends StatelessWidget {
                   ],
                 ),
 
-                // Receive
+                // 接收设置
                 SettingsGroup(
                   title: t.settingsTab.receive.title,
                   isDark: isDark,
@@ -196,7 +200,7 @@ class SettingsPage extends StatelessWidget {
                   ],
                 ),
 
-                // Network
+                // 网络设置
                 SettingsGroup(
                   title: t.settingsTab.network.title,
                   isDark: isDark,
@@ -207,7 +211,7 @@ class SettingsPage extends StatelessWidget {
                       value: vm.settings.alias,
                       isDark: isDark,
                       onTap: () {
-                        // TODO: Show edit dialog
+                        // TODO: 显示编辑对话框
                       },
                     ),
                     SettingsItem(

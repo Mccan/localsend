@@ -8,6 +8,10 @@ import 'package:localsend_app/util/ip_helper.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
+/// 接收页面
+/// 
+/// 显示接收文件的状态和本地IP地址
+/// 支持快速保存功能和历史记录查看
 class ReceivePage extends StatelessWidget {
   const ReceivePage({super.key});
 
@@ -20,7 +24,7 @@ class ReceivePage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: Column(
         children: [
-          // Header
+          // 顶部标题栏
           Padding(
             padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
             child: Row(
@@ -47,6 +51,7 @@ class ReceivePage extends StatelessWidget {
                     ),
                   ],
                 ),
+                // 历史记录按钮
                 IconButton(
                   onPressed: () {
                     context.push(() => const ReceiveHistoryPage());
@@ -59,12 +64,13 @@ class ReceivePage extends StatelessWidget {
             ),
           ),
 
-          // Main Content
+          // 主内容区域
           Expanded(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // 脉冲动画图标
                   PulseRipple(
                     color: LinkDropColors.teal500,
                     child: Container(
@@ -102,10 +108,10 @@ class ReceivePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   
-                  // IP / Alias Display
+                  // IP地址显示
                   InkWell(
                     onTap: () {
-                      // TODO: Show dialog to edit alias
+                      // TODO: 显示编辑别名的对话框
                     },
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
@@ -132,7 +138,7 @@ class ReceivePage extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
-                  // Quick Save Toggle
+                  // 快速保存开关
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(

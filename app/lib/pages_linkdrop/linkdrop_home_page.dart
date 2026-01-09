@@ -14,6 +14,10 @@ import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
+/// LinkDrop主页面
+///
+/// 包含左侧导航栏和右侧内容区域
+/// 支持拖拽文件到页面中自动跳转到发送页面
 class LinkDropHomePage extends StatefulWidget {
   final HomeTab initialTab;
   final bool appStart;
@@ -30,6 +34,7 @@ class LinkDropHomePage extends StatefulWidget {
 
 class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
   bool _dragAndDropIndicator = false;
+  bool _isSidebarExpanded = false;
 
   @override
   void initState() {
@@ -52,7 +57,9 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
         if (event.files.length == 1 && Directory(event.files.first.path).existsSync()) {
           await ref.redux(selectedSendingFilesProvider).dispatchAsync(AddDirectoryAction(event.files.first.path));
         } else {
-          await ref.redux(selectedSendingFilesProvider).dispatchAsync(
+          await ref
+              .redux(selectedSendingFilesProvider)
+              .dispatchAsync(
                 AddFilesAction(
                   files: event.files,
                   converter: CrossFileConverters.convertXFile,
@@ -64,11 +71,10 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
       child: Scaffold(
         body: Row(
           children: [
-            // Sidebar (Desktop)
-            if (MediaQuery.of(context).size.width >= 700)
-              _buildSidebar(context, vm, isDark),
+            // 侧边栏（桌面端显示）
+            if (MediaQuery.of(context).size.width >= 700) _buildSidebar(context, vm, isDark),
 
-            // Main Content
+            // 主内容区域
             Expanded(
               child: PageView(
                 controller: vm.controller,
@@ -82,7 +88,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
             ),
           ],
         ),
-        // Bottom Navigation (Mobile)
+        // 底部导航栏（移动端显示）
         bottomNavigationBar: MediaQuery.of(context).size.width < 700
             ? NavigationBar(
                 selectedIndex: vm.currentTab.index,
@@ -107,9 +113,15 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
     );
   }
 
+  /// 构建侧边栏
+  ///
+  /// 包含Logo、切换按钮和导航菜单
+  /// 支持展开/收起两种模式
   Widget _buildSidebar(BuildContext context, HomePageVm vm, bool isDark) {
-    return Container(
-      width: 250,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: _isSidebarExpanded ? 250 : 80,
       decoration: BoxDecoration(
         color: isDark ? LinkDropColors.zinc950 : Colors.white,
         border: Border(
@@ -118,71 +130,109 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
           ),
         ),
       ),
-      child: Column(
-        children: [
-          // Logo Area
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white : LinkDropColors.zinc900,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.send,
-                    color: isDark ? LinkDropColors.zinc900 : Colors.white,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'LinkDrop',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : LinkDropColors.zinc900,
-                  ),
-                ),
-              ],
-            ),
-          ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // 关键点：侧边栏宽度在动画过程中是逐步变化的。
+          // 如果仅用 _isSidebarExpanded 立即显示文字，宽度尚未足够时会触发 RenderFlex overflow。
+          // 同时，这里必须保证 Column 的高度约束是有界的（来自父级 AnimatedContainer/Row），否则 Expanded 会布局失败。
+          final effectiveExpanded = constraints.maxWidth >= 120;
 
-          // Navigation
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: [
-                SidebarItem(
-                  icon: Icons.wifi,
-                  label: 'Receive',
-                  active: vm.currentTab == HomeTab.receive,
-                  onTap: () => vm.changeTab(HomeTab.receive),
-                  isDark: isDark,
+          return Column(
+            children: [
+              // Logo区域（可点击切换展开/收起）
+              Padding(
+                //padding: const EdgeInsets.fromLTRB(12, 24, 12, 8) 导致RenderFlex overflowed by 白底红字错误
+                padding: const EdgeInsets.fromLTRB(10, 24, 10, 8),
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: _isSidebarExpanded ? (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50) : Colors.transparent,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: effectiveExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                        children: [
+                          AnimatedRotation(
+                            turns: _isSidebarExpanded ? 0 : 0.5,
+                            duration: const Duration(milliseconds: 200),
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.send,
+                                color: isDark ? LinkDropColors.zinc900 : Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                          if (effectiveExpanded) ...[
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'LinkDrop',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                SidebarItem(
-                  icon: Icons.send,
-                  label: 'Send',
-                  active: vm.currentTab == HomeTab.send,
-                  onTap: () => vm.changeTab(HomeTab.send),
-                  isDark: isDark,
+              ),
+
+              const SizedBox(height: 8),
+
+              // 导航菜单
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  children: [
+                    SidebarItem(
+                      icon: Icons.wifi,
+                      label: 'Receive',
+                      active: vm.currentTab == HomeTab.receive,
+                      onTap: () => vm.changeTab(HomeTab.receive),
+                      isDark: isDark,
+                      isExpanded: effectiveExpanded,
+                    ),
+                    SidebarItem(
+                      icon: Icons.send,
+                      label: 'Send',
+                      active: vm.currentTab == HomeTab.send,
+                      onTap: () => vm.changeTab(HomeTab.send),
+                      isDark: isDark,
+                      isExpanded: effectiveExpanded,
+                    ),
+                    SidebarItem(
+                      icon: Icons.settings,
+                      label: 'Settings',
+                      active: vm.currentTab == HomeTab.settings,
+                      onTap: () => vm.changeTab(HomeTab.settings),
+                      isDark: isDark,
+                      isExpanded: effectiveExpanded,
+                    ),
+                  ],
                 ),
-                SidebarItem(
-                  icon: Icons.settings,
-                  label: 'Settings',
-                  active: vm.currentTab == HomeTab.settings,
-                  onTap: () => vm.changeTab(HomeTab.settings),
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
-
