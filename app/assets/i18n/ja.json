@@ -43,6 +43,10 @@
   },
   "receiveTab": {
     "title": "受信",
+    "subtitle": "このページは送信側からの送信を待つだけです",
+    "readyToReceive": "受信準備完了",
+    "receiving": "受信中",
+    "received": "受信完了",
     "infoBox": {
       "ip": "IP:",
       "port": "ポート:",

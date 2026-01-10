@@ -43,6 +43,10 @@
   },
   "receiveTab": {
     "title": "받기",
+    "subtitle": "이 페이지는 보내는 쪽에서 보낼 때까지 기다리기만 하면 됩니다",
+    "readyToReceive": "받을 준비 완료",
+    "receiving": "받는 중",
+    "received": "받기 완료",
     "infoBox": {
       "ip": "IP:",
       "port": "포트:",

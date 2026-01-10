@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
 
 class PulseRipple extends StatefulWidget {
   final Widget child;
   final Color color;
+  final bool shouldRotate;
 
   const PulseRipple({
     required this.child,
     required this.color,
+    this.shouldRotate = false,
     super.key,
   });
 
@@ -24,7 +25,7 @@ class _PulseRippleState extends State<PulseRipple> with SingleTickerProviderStat
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
-    )..repeat();
+    )..repeat(); // ignore: discarded_futures
   }
 
   @override
@@ -38,11 +39,21 @@ class _PulseRippleState extends State<PulseRipple> with SingleTickerProviderStat
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Ripple 1
         _buildRipple(0),
-        // Ripple 2
         _buildRipple(0.5),
-        widget.child,
+        if (widget.shouldRotate)
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: _controller.value * 6.28318,
+                child: child,
+              );
+            },
+            child: widget.child,
+          )
+        else
+          widget.child,
       ],
     );
   }
@@ -55,13 +66,13 @@ class _PulseRippleState extends State<PulseRipple> with SingleTickerProviderStat
         return Opacity(
           opacity: (1.0 - value) * 0.5,
           child: Transform.scale(
-            scale: 1.0 + (value * 0.5), // Scale from 1.0 to 1.5
+            scale: 1.0 + (value * 0.5),
             child: Container(
               width: 200,
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: widget.color.withOpacity(0.2),
+                color: widget.color.withValues(alpha: 0.2),
               ),
             ),
           ),

@@ -208,6 +208,18 @@ class TranslationsReceiveTabEn {
   /// en: 'Receive'
   String get title => 'Receive';
 
+  /// en: 'Ready to accept files'
+  String get subtitle => 'Ready to accept files';
+
+  /// en: 'Ready to Receive'
+  String get readyToReceive => 'Ready to Receive';
+
+  /// en: 'Receiving'
+  String get receiving => 'Receiving';
+
+  /// en: 'Received'
+  String get received => 'Received';
+
   late final TranslationsReceiveTabInfoBoxEn infoBox = TranslationsReceiveTabInfoBoxEn.internal(_root);
   late final TranslationsReceiveTabQuickSaveEn quickSave = TranslationsReceiveTabQuickSaveEn.internal(_root);
 }

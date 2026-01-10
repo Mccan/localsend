@@ -184,6 +184,14 @@ class _TranslationsReceiveTabKo extends TranslationsReceiveTabEn {
   @override
   String get title => '받기';
   @override
+  String get subtitle => '이 페이지는 보내는 쪽에서 보낼 때까지 기다리기만 하면 됩니다';
+  @override
+  String get readyToReceive => '받을 준비 완료';
+  @override
+  String get receiving => '받는 중';
+  @override
+  String get received => '받기 완료';
+  @override
   late final _TranslationsReceiveTabInfoBoxKo infoBox = _TranslationsReceiveTabInfoBoxKo._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveKo quickSave = _TranslationsReceiveTabQuickSaveKo._(_root);

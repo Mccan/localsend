@@ -43,6 +43,8 @@
   },
   "receiveTab": {
     "title": "Empfangen",
+    "subtitle": "Auf dieser Seite warten Sie nur darauf, dass der Absender sendet",
+    "readyToReceive": "Bereit zum Empfangen",
     "infoBox": {
       "ip": "IP:",
       "port": "Port:",

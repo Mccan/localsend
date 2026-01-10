@@ -43,6 +43,8 @@
   },
   "receiveTab": {
     "title": "@:settingsTab.receive.title",
+    "subtitle": "當前頁只需等待發送端發送即可",
+    "readyToReceive": "準備接收",
     "infoBox": {
       "ip": "IP：",
       "port": "Port：",

@@ -186,6 +186,10 @@ class _TranslationsReceiveTabAr extends TranslationsReceiveTabEn {
   @override
   String get title => 'استلام';
   @override
+  String get subtitle => 'هذه الصفحة تنتظر فقط أن يرسل المرسل';
+  @override
+  String get readyToReceive => 'جاهز للاستلام';
+  @override
   late final _TranslationsReceiveTabInfoBoxAr infoBox = _TranslationsReceiveTabInfoBoxAr._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveAr quickSave = _TranslationsReceiveTabQuickSaveAr._(_root);

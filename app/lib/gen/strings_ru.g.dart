@@ -184,6 +184,10 @@ class _TranslationsReceiveTabRu extends TranslationsReceiveTabEn {
   @override
   String get title => 'Получить';
   @override
+  String get subtitle => 'На этой странице нужно только ждать отправки от отправителя';
+  @override
+  String get readyToReceive => 'Готов к приему';
+  @override
   late final _TranslationsReceiveTabInfoBoxRu infoBox = _TranslationsReceiveTabInfoBoxRu._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveRu quickSave = _TranslationsReceiveTabQuickSaveRu._(_root);

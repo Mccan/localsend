@@ -43,6 +43,8 @@
   },
   "receiveTab": {
     "title": "Terima",
+    "subtitle": "Halaman ini hanya menunggu pengirim mengirim",
+    "readyToReceive": "Siap menerima",
     "infoBox": {
       "ip": "IP:",
       "port": "Porta:",

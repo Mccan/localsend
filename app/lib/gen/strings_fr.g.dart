@@ -184,6 +184,14 @@ class _TranslationsReceiveTabFr extends TranslationsReceiveTabEn {
   @override
   String get title => 'Recevoir';
   @override
+  String get subtitle => 'Cette page attend simplement que l\'expéditeur envoie';
+  @override
+  String get readyToReceive => 'Prêt à recevoir';
+  @override
+  String get receiving => 'Réception en cours';
+  @override
+  String get received => 'Reçu';
+  @override
   late final _TranslationsReceiveTabInfoBoxFr infoBox = _TranslationsReceiveTabInfoBoxFr._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveFr quickSave = _TranslationsReceiveTabQuickSaveFr._(_root);
@@ -694,11 +702,11 @@ class _TranslationsReceiveTabInfoBoxFr extends TranslationsReceiveTabInfoBoxEn {
 
   // Translations
   @override
-  String get ip => 'IP :';
+  String get ip => 'IP :';
   @override
-  String get port => 'Port :';
+  String get port => 'Port :';
   @override
-  String get alias => 'Nom du périphérique :';
+  String get alias => 'Nom du périphérique :';
 }
 
 // Path: receiveTab.quickSave

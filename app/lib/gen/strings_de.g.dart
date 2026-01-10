@@ -184,6 +184,10 @@ class _TranslationsReceiveTabDe extends TranslationsReceiveTabEn {
   @override
   String get title => 'Empfangen';
   @override
+  String get subtitle => 'Auf dieser Seite warten Sie nur darauf, dass der Absender sendet';
+  @override
+  String get readyToReceive => 'Bereit zum Empfangen';
+  @override
   late final _TranslationsReceiveTabInfoBoxDe infoBox = _TranslationsReceiveTabInfoBoxDe._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveDe quickSave = _TranslationsReceiveTabQuickSaveDe._(_root);

@@ -182,6 +182,10 @@ class _TranslationsReceiveTabVi extends TranslationsReceiveTabEn {
   @override
   String get title => 'Nhận';
   @override
+  String get subtitle => 'Trang này chỉ cần chờ người gửi gửi';
+  @override
+  String get readyToReceive => 'Sẵn sàng nhận';
+  @override
   late final _TranslationsReceiveTabInfoBoxVi infoBox = _TranslationsReceiveTabInfoBoxVi._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveVi quickSave = _TranslationsReceiveTabQuickSaveVi._(_root);

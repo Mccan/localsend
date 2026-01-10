@@ -43,6 +43,8 @@
   },
   "receiveTab": {
     "title": "استلام",
+    "subtitle": "هذه الصفحة تنتظر فقط أن يرسل المرسل",
+    "readyToReceive": "جاهز للاستلام",
     "infoBox": {
       "ip": "IP:",
       "port": "منفذ:",

@@ -43,6 +43,8 @@
   },
   "receiveTab": {
     "title": "Nhận",
+    "subtitle": "Trang này chỉ cần chờ người gửi gửi",
+    "readyToReceive": "Sẵn sàng nhận",
     "infoBox": {
       "ip": "IP:",
       "port": "Port:",

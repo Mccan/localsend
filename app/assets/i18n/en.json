@@ -43,6 +43,10 @@
   },
   "receiveTab": {
     "title": "Receive",
+    "subtitle": "Ready to accept files",
+    "readyToReceive": "Ready to Receive",
+    "receiving": "Receiving",
+    "received": "Received",
     "infoBox": {
       "ip": "IP:",
       "port": "Port:",

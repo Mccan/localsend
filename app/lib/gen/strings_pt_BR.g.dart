@@ -186,6 +186,10 @@ class _TranslationsReceiveTabPtBr extends TranslationsReceiveTabEn {
   @override
   String get title => 'Receber';
   @override
+  String get subtitle => 'Esta página apenas espera que o remetente envie';
+  @override
+  String get readyToReceive => 'Pronto para receber';
+  @override
   late final _TranslationsReceiveTabInfoBoxPtBr infoBox = _TranslationsReceiveTabInfoBoxPtBr._(_root);
   @override
   late final _TranslationsReceiveTabQuickSavePtBr quickSave = _TranslationsReceiveTabQuickSavePtBr._(_root);

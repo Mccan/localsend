@@ -43,6 +43,10 @@
   },
   "receiveTab": {
     "title": "Recibir",
+    "subtitle": "Esta página solo espera que el remitente envíe",
+    "readyToReceive": "Listo para recibir",
+    "receiving": "Recibiendo",
+    "received": "Recibido",
     "infoBox": {
       "ip": "IP:",
       "port": "Puerto:",

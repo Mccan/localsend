@@ -42,6 +42,8 @@
   },
   "receiveTab": {
     "title": "รับ",
+    "subtitle": "หน้านี้เพียงรอให้ผู้ส่งส่งเท่านั้น",
+    "readyToReceive": "พร้อมรับ",
     "infoBox": {
       "ip": "ไอพี:",
       "port": "พอร์ต:",

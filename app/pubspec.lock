@@ -1387,10 +1387,10 @@ packages:
     dependency: "direct main"
     description:
       name: rhttp
-      sha256: e8f0a8756a931598b7d9c4107a4afe93c2b81cbf8c45e532ba9dc52e12bbaa35
+      sha256: "85596c17bc2723c40c18a2d2764042740d998fe77ea943359b5c9f8d217e6a4a"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.13.0"
+    version: "0.15.0"
   routerino:
     dependency: "direct main"
     description:

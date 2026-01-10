@@ -43,6 +43,8 @@
   },
   "receiveTab": {
     "title": "Alım",
+    "subtitle": "Bu sayfa sadece göndericinin göndermesini bekler",
+    "readyToReceive": "Almaya hazır",
     "infoBox": {
       "ip": "IP:",
       "port": "Port:",

@@ -182,6 +182,14 @@ class _TranslationsReceiveTabJa extends TranslationsReceiveTabEn {
   @override
   String get title => '受信';
   @override
+  String get subtitle => 'このページは送信側からの送信を待つだけです';
+  @override
+  String get readyToReceive => '受信準備完了';
+  @override
+  String get receiving => '受信中';
+  @override
+  String get received => '受信完了';
+  @override
   late final _TranslationsReceiveTabInfoBoxJa infoBox = _TranslationsReceiveTabInfoBoxJa._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveJa quickSave = _TranslationsReceiveTabQuickSaveJa._(_root);

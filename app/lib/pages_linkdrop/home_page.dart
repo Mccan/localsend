@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/config/init.dart';
-import 'package:localsend_app/pages/home_page.dart';
-import 'package:localsend_app/pages/home_page_controller.dart';
+import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/pages_linkdrop/home_page_controller.dart';
 import 'package:localsend_app/pages_linkdrop/receive_page.dart';
 import 'package:localsend_app/pages_linkdrop/send_page.dart';
 import 'package:localsend_app/pages_linkdrop/settings_page.dart';
@@ -13,6 +13,27 @@ import 'package:localsend_app/provider/selection/selected_sending_files_provider
 import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+
+enum HomeTab {
+  receive(Icons.wifi),
+  send(Icons.send),
+  settings(Icons.settings);
+
+  const HomeTab(this.icon);
+
+  final IconData icon;
+
+  String get label {
+    switch (this) {
+      case HomeTab.receive:
+        return t.receiveTab.title;
+      case HomeTab.send:
+        return t.sendTab.title;
+      case HomeTab.settings:
+        return t.settingsTab.title;
+    }
+  }
+}
 
 /// LinkDrop主页面
 ///

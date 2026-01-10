@@ -184,6 +184,10 @@ class _TranslationsReceiveTabId extends TranslationsReceiveTabEn {
   @override
   String get title => 'Terima';
   @override
+  String get subtitle => 'Halaman ini hanya menunggu pengirim mengirim';
+  @override
+  String get readyToReceive => 'Siap menerima';
+  @override
   late final _TranslationsReceiveTabInfoBoxId infoBox = _TranslationsReceiveTabInfoBoxId._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveId quickSave = _TranslationsReceiveTabQuickSaveId._(_root);

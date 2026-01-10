@@ -184,6 +184,10 @@ class _TranslationsReceiveTabTr extends TranslationsReceiveTabEn {
   @override
   String get title => 'Alım';
   @override
+  String get subtitle => 'Bu sayfa sadece göndericinin göndermesini bekler';
+  @override
+  String get readyToReceive => 'Almaya hazır';
+  @override
   late final _TranslationsReceiveTabInfoBoxTr infoBox = _TranslationsReceiveTabInfoBoxTr._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveTr quickSave = _TranslationsReceiveTabQuickSaveTr._(_root);

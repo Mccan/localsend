@@ -182,6 +182,10 @@ class _TranslationsReceiveTabZhHk extends TranslationsReceiveTabEn {
   @override
   String get title => _root.settingsTab.receive.title;
   @override
+  String get subtitle => '當前頁只需等待發送端發送即可';
+  @override
+  String get readyToReceive => '準備接收';
+  @override
   late final _TranslationsReceiveTabInfoBoxZhHk infoBox = _TranslationsReceiveTabInfoBoxZhHk._(_root);
   @override
   late final _TranslationsReceiveTabQuickSaveZhHk quickSave = _TranslationsReceiveTabQuickSaveZhHk._(_root);

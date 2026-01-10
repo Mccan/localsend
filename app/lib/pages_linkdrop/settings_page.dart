@@ -30,7 +30,7 @@ class SettingsPage extends StatelessWidget {
         children: [
           // 顶部标题栏
           Padding(
-            padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
+            padding: EdgeInsets.fromLTRB(32, MediaQuery.of(context).padding.top + 16, 32, 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

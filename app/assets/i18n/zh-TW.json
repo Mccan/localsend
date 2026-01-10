@@ -43,6 +43,10 @@
   },
   "receiveTab": {
     "title": "接收",
+    "subtitle": "當前頁只需等待發送端發送即可",
+    "readyToReceive": "準備接收",
+    "receiving": "接收中",
+    "received": "接收完成",
     "infoBox": {
       "ip": "IP：",
       "port": "通訊埠：",

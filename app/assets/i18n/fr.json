@@ -43,10 +43,14 @@
   },
   "receiveTab": {
     "title": "Recevoir",
+    "subtitle": "Cette page attend simplement que l'expéditeur envoie",
+    "readyToReceive": "Prêt à recevoir",
+    "receiving": "Réception en cours",
+    "received": "Reçu",
     "infoBox": {
-      "ip": "IP :",
-      "port": "Port :",
-      "alias": "Nom du périphérique :"
+      "ip": "IP :",
+      "port": "Port :",
+      "alias": "Nom du périphérique :"
     },
     "quickSave": {
       "off": "@:general.off",

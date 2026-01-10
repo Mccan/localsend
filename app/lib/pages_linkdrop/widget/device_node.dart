@@ -6,11 +6,13 @@ class DeviceNode extends StatelessWidget {
   final Device device;
   final VoidCallback onTap;
   final bool isDark;
+  final bool isFavorite;
 
   const DeviceNode({
     required this.device,
     required this.onTap,
     required this.isDark,
+    this.isFavorite = false,
     super.key,
   });
 
@@ -19,8 +21,8 @@ class DeviceNode extends StatelessWidget {
     final icon = device.deviceType == DeviceType.mobile
         ? Icons.smartphone
         : device.deviceType == DeviceType.desktop
-            ? Icons.computer
-            : Icons.laptop;
+        ? Icons.computer
+        : Icons.laptop;
 
     return GestureDetector(
       onTap: onTap,
@@ -77,20 +79,39 @@ class DeviceNode extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    device.alias,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? LinkDropColors.zinc200 : LinkDropColors.zinc900,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        device.alias,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? LinkDropColors.zinc200 : LinkDropColors.zinc900,
+                        ),
+                      ),
+                      if (isFavorite) ...[
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: Colors.amber,
+                        ),
+                      ],
+                    ],
                   ),
-                  Text(
-                    '${device.deviceType.name} • ${device.ip}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: LinkDropColors.zinc500,
-                    ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '${device.deviceType.name} • ${device.ip}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: LinkDropColors.zinc500,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _SignalStrengthIndicator(isDark: isDark),
+                    ],
                   ),
                 ],
               ),
@@ -110,6 +131,37 @@ class DeviceNode extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SignalStrengthIndicator extends StatelessWidget {
+  final bool isDark;
+
+  const _SignalStrengthIndicator({
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(4, (index) {
+        final isActive = index < 3;
+        return Container(
+          width: 3,
+          height: 4.0 + (index * 2.5),
+          margin: const EdgeInsets.only(right: 1),
+          decoration: BoxDecoration(
+            color: isActive
+                ? LinkDropColors.teal500
+                : isDark
+                ? LinkDropColors.zinc700
+                : LinkDropColors.zinc300,
+            borderRadius: BorderRadius.circular(1),
+          ),
+        );
+      }),
     );
   }
 }

@@ -182,6 +182,10 @@ class _TranslationsReceiveTabTh extends TranslationsReceiveTabEn {
   @override
   String get title => 'รับ';
   @override
+  String get subtitle => 'หน้านี้เพียงรอให้ผู้ส่งส่งเท่านั้น';
+  @override
+  String get readyToReceive => 'พร้อมรับ';
+  @override
   late final _TranslationsReceiveTabInfoBoxTh infoBox = _TranslationsReceiveTabInfoBoxTh._(_root);
 }
 
