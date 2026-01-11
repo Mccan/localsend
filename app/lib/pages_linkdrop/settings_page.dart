@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:common/model/device.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
@@ -5,8 +9,13 @@ import 'package:localsend_app/pages/language_page.dart';
 import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
 import 'package:localsend_app/pages_linkdrop/widget/settings_group.dart';
 import 'package:localsend_app/pages_linkdrop/widget/settings_item.dart';
+import 'package:localsend_app/pages_linkdrop/widget/settings_text_field.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
+import 'package:localsend_app/util/alias_generator.dart';
+import 'package:localsend_app/util/device_type_ext.dart';
+import 'package:localsend_app/util/native/autostart_helper.dart';
+import 'package:localsend_app/util/native/context_menu_helper.dart';
 import 'package:localsend_app/util/native/pick_directory_path.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -15,8 +24,51 @@ import 'package:refena_flutter/refena_flutter.dart';
 ///
 /// 提供应用程序的各种设置选项
 /// 包括常规设置、接收设置和网络设置
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeDefaultSettings();
+    });
+  }
+
+  Future<void> _initializeDefaultSettings() async {
+    final ref = context.ref;
+    final settings = ref.read(settingsProvider);
+
+    final futures = <Future>[];
+
+    futures.add(ref.notifier(settingsProvider).setEnableAnimations(true));
+    futures.add(ref.notifier(settingsProvider).setQuickSave(true));
+    futures.add(ref.notifier(settingsProvider).setAutoFinish(true));
+    futures.add(ref.notifier(settingsProvider).setSaveToHistory(true));
+    futures.add(ref.notifier(settingsProvider).setHttps(true));
+    futures.add(ref.notifier(settingsProvider).setShareViaLinkAutoAccept(true));
+
+    if (checkPlatformIsDesktop()) {
+      futures.add(ref.notifier(settingsProvider).setSaveWindowPlacement(true));
+      futures.add(ref.notifier(settingsProvider).setMinimizeToTray(true));
+      if (!settings.quickSaveFromFavorites) {
+        futures.add(ref.notifier(settingsProvider).setQuickSaveFromFavorites(true));
+      }
+      if (checkPlatform([TargetPlatform.windows])) {
+        final showInContextMenu = await isContextMenuEnabled();
+        if (!showInContextMenu) {
+          futures.add(enableContextMenu());
+        }
+      }
+    }
+
+    await Future.wait(futures);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,24 +104,6 @@ class SettingsPage extends StatelessWidget {
                         color: LinkDropColors.zinc500,
                         fontSize: 14,
                       ),
-                    ),
-                  ],
-                ),
-                // 高级设置开关
-                Row(
-                  children: [
-                    Text(
-                      'Advanced',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? LinkDropColors.zinc400 : LinkDropColors.zinc500,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Switch(
-                      value: vm.advanced,
-                      onChanged: (b) => vm.onTapAdvanced(b),
-                      activeColor: LinkDropColors.teal500,
                     ),
                   ],
                 ),
@@ -118,34 +152,6 @@ class SettingsPage extends StatelessWidget {
                         onChanged: (theme) => vm.onChangeTheme(context, theme!),
                       ),
                     ),
-                    SettingsItem(
-                      icon: Icons.palette,
-                      title: t.settingsTab.general.color,
-                      isDark: isDark,
-                      trailing: DropdownButton<ColorMode>(
-                        value: vm.settings.colorMode,
-                        dropdownColor: isDark ? LinkDropColors.zinc800 : Colors.white,
-                        underline: Container(),
-                        icon: const Icon(Icons.arrow_drop_down, color: LinkDropColors.zinc500),
-                        items: vm.colorModes.map((mode) {
-                          return DropdownMenuItem(
-                            value: mode,
-                            child: Text(
-                              mode.humanName,
-                              style: TextStyle(
-                                color: isDark ? Colors.white : LinkDropColors.zinc900,
-                                fontSize: 14,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (mode) {
-                          if (mode != null) {
-                            vm.onChangeColorMode(mode);
-                          }
-                        },
-                      ),
-                    ),
                   ],
                 ),
 
@@ -154,16 +160,6 @@ class SettingsPage extends StatelessWidget {
                   title: t.settingsTab.receive.title,
                   isDark: isDark,
                   children: [
-                    SettingsItem(
-                      icon: Icons.save_alt,
-                      title: t.settingsTab.receive.quickSave,
-                      isDark: isDark,
-                      trailing: Switch(
-                        value: vm.settings.quickSave,
-                        activeColor: LinkDropColors.teal500,
-                        onChanged: (b) => ref.notifier(settingsProvider).setQuickSave(b),
-                      ),
-                    ),
                     if (checkPlatformWithFileSystem())
                       SettingsItem(
                         icon: Icons.folder_open,
@@ -177,26 +173,6 @@ class SettingsPage extends StatelessWidget {
                           }
                         },
                       ),
-                    SettingsItem(
-                      icon: Icons.check_circle_outline,
-                      title: t.settingsTab.receive.autoFinish,
-                      isDark: isDark,
-                      trailing: Switch(
-                        value: vm.settings.autoFinish,
-                        activeColor: LinkDropColors.teal500,
-                        onChanged: (b) => ref.notifier(settingsProvider).setAutoFinish(b),
-                      ),
-                    ),
-                    SettingsItem(
-                      icon: Icons.history,
-                      title: t.settingsTab.receive.saveToHistory,
-                      isDark: isDark,
-                      trailing: Switch(
-                        value: vm.settings.saveToHistory,
-                        activeColor: LinkDropColors.teal500,
-                        onChanged: (b) => ref.notifier(settingsProvider).setSaveToHistory(b),
-                      ),
-                    ),
                   ],
                 ),
 
@@ -206,28 +182,28 @@ class SettingsPage extends StatelessWidget {
                   isDark: isDark,
                   children: [
                     SettingsItem(
-                      icon: Icons.dns,
-                      title: 'Alias',
-                      value: vm.settings.alias,
+                      icon: Icons.devices,
+                      title: t.settingsTab.network.deviceType,
                       isDark: isDark,
-                      onTap: () {
-                        // TODO: 显示编辑对话框
-                      },
-                    ),
-                    SettingsItem(
-                      icon: Icons.numbers,
-                      title: 'Port',
-                      value: vm.settings.port.toString(),
-                      isDark: isDark,
-                    ),
-                    SettingsItem(
-                      icon: Icons.lock_outline,
-                      title: 'Encryption',
-                      isDark: isDark,
-                      trailing: Switch(
-                        value: vm.settings.https,
-                        activeColor: LinkDropColors.teal500,
-                        onChanged: (b) => ref.notifier(settingsProvider).setHttps(b),
+                      trailing: DropdownButton<DeviceType>(
+                        value: vm.deviceInfo.deviceType,
+                        dropdownColor: isDark ? LinkDropColors.zinc800 : Colors.white,
+                        underline: Container(),
+                        icon: const Icon(Icons.arrow_drop_down, color: LinkDropColors.zinc500),
+                        items: DeviceType.values.map((type) {
+                          return DropdownMenuItem(
+                            value: type,
+                            child: Icon(
+                              type.icon,
+                              color: isDark ? Colors.white : LinkDropColors.zinc900,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (type) async {
+                          if (type != null) {
+                            await ref.notifier(settingsProvider).setDeviceType(type);
+                          }
+                        },
                       ),
                     ),
                   ],

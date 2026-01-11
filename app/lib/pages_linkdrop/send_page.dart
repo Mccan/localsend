@@ -9,6 +9,7 @@ import 'package:localsend_app/pages/selected_files_page.dart';
 import 'package:localsend_app/pages/tabs/send_tab_vm.dart';
 import 'package:localsend_app/pages_linkdrop/widget/device_node.dart';
 import 'package:localsend_app/pages_linkdrop/widget/pulse_ripple.dart';
+import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/scan_facade.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
@@ -34,6 +35,25 @@ class SendPage extends StatefulWidget {
 
 class _SendPageState extends State<SendPage> with Refena {
   bool _dragAndDropIndicator = false;
+  bool _isScanning = false;
+
+  Future<void> _handleScan(BuildContext context) async {
+    setState(() {
+      _isScanning = true;
+    });
+
+    context.redux(nearbyDevicesProvider).dispatch(ClearFoundDevicesAction());
+
+    try {
+      await context.global.dispatchAsync(StartSmartScan(forceLegacy: true));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,8 +109,9 @@ class _SendPageState extends State<SendPage> with Refena {
                       _ControlButton(
                         icon: Icons.refresh_rounded,
                         label: 'Scan',
-                        onTap: () => context.global.dispatchAsync(StartSmartScan(forceLegacy: true)),
+                        onTap: () => _handleScan(context),
                         isDark: isDark,
+                        isRotating: _isScanning,
                       ),
                       _ControlButton(
                         icon: Icons.keyboard_alt_rounded,
@@ -475,23 +496,63 @@ class _SelectionOptionButton extends StatelessWidget {
 /// 控制按钮组件
 ///
 /// 用于显示操作按钮（扫描、手动输入、收藏、发送模式）
-class _ControlButton extends StatelessWidget {
+class _ControlButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final bool isDark;
+  final bool isRotating;
 
   const _ControlButton({
     required this.icon,
     required this.label,
     required this.onTap,
     required this.isDark,
+    this.isRotating = false,
   });
+
+  @override
+  State<_ControlButton> createState() => _ControlButtonState();
+}
+
+class _ControlButtonState extends State<_ControlButton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _rotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+    _rotationAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(_controller);
+  }
+
+  @override
+  void didUpdateWidget(_ControlButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isRotating && !oldWidget.isRotating) {
+      _controller.repeat();
+    } else if (!widget.isRotating && oldWidget.isRotating) {
+      _controller.stop();
+      _controller.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: widget.onTap,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -501,17 +562,25 @@ class _ControlButton extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDark ? LinkDropColors.zinc800 : Colors.white,
+                color: widget.isDark ? LinkDropColors.zinc800 : Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isDark ? LinkDropColors.zinc700 : LinkDropColors.zinc200,
+                  color: widget.isDark ? LinkDropColors.zinc700 : LinkDropColors.zinc200,
                 ),
               ),
-              child: Icon(icon, size: 20, color: LinkDropColors.teal500),
+              child: AnimatedBuilder(
+                animation: _rotationAnimation,
+                builder: (context, child) {
+                  return Transform.rotate(
+                    angle: _rotationAnimation.value * 2 * 3.141592653589793,
+                    child: Icon(widget.icon, size: 20, color: LinkDropColors.teal500),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              label,
+              widget.label,
               style: TextStyle(
                 fontSize: 12,
                 color: LinkDropColors.zinc500,

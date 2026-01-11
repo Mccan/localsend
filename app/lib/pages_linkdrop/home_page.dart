@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:localsend_app/pages_linkdrop/send_page.dart';
 import 'package:localsend_app/pages_linkdrop/settings_page.dart';
 import 'package:localsend_app/pages_linkdrop/widget/sidebar_item.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
+import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -99,7 +101,6 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
             Expanded(
               child: PageView(
                 controller: vm.controller,
-                physics: const NeverScrollableScrollPhysics(),
                 children: const [
                   ReceivePage(),
                   SendPage(),
@@ -138,121 +139,268 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
   ///
   /// 包含Logo、切换按钮和导航菜单
   /// 支持展开/收起两种模式
+  /// 使用毛玻璃特效增强视觉效果
   Widget _buildSidebar(BuildContext context, HomePageVm vm, bool isDark) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      width: _isSidebarExpanded ? 250 : 80,
-      decoration: BoxDecoration(
-        color: isDark ? LinkDropColors.zinc950 : Colors.white,
-        border: Border(
-          right: BorderSide(
-            color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          width: _isSidebarExpanded ? 250 : 80,
+          decoration: BoxDecoration(
+            color: (isDark ? LinkDropColors.zinc950 : Colors.white).withOpacity(0.85),
+            border: Border(
+              right: BorderSide(
+                color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // 关键点：侧边栏宽度在动画过程中是逐步变化的。
-          // 如果仅用 _isSidebarExpanded 立即显示文字，宽度尚未足够时会触发 RenderFlex overflow。
-          // 同时，这里必须保证 Column 的高度约束是有界的（来自父级 AnimatedContainer/Row），否则 Expanded 会布局失败。
-          final effectiveExpanded = constraints.maxWidth >= 120;
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final effectiveExpanded = constraints.maxWidth >= 120;
 
-          return Column(
-            children: [
-              // Logo区域（可点击切换展开/收起）
-              Padding(
-                //padding: const EdgeInsets.fromLTRB(12, 24, 12, 8) 导致RenderFlex overflowed by 白底红字错误
-                padding: const EdgeInsets.fromLTRB(10, 24, 10, 8),
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: _isSidebarExpanded ? (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50) : Colors.transparent,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: effectiveExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
-                        children: [
-                          AnimatedRotation(
-                            turns: _isSidebarExpanded ? 0 : 0.5,
-                            duration: const Duration(milliseconds: 200),
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: isDark ? Colors.white : LinkDropColors.zinc900,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                Icons.send,
-                                color: isDark ? LinkDropColors.zinc900 : Colors.white,
-                                size: 18,
-                              ),
-                            ),
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 24, 10, 8),
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: _isSidebarExpanded ? (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50) : Colors.transparent,
                           ),
-                          if (effectiveExpanded) ...[
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'LinkDrop',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : LinkDropColors.zinc900,
+                          child: Row(
+                            mainAxisAlignment: effectiveExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                            children: [
+                              AnimatedRotation(
+                                turns: _isSidebarExpanded ? 0 : 0.5,
+                                duration: const Duration(milliseconds: 200),
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.send,
+                                    color: isDark ? LinkDropColors.zinc900 : Colors.white,
+                                    size: 18,
+                                  ),
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
-                        ],
+                              if (effectiveExpanded) ...[
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'LinkDrop',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
 
-              const SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
-              // 导航菜单
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  children: [
-                    SidebarItem(
-                      icon: Icons.wifi,
-                      label: 'Receive',
-                      active: vm.currentTab == HomeTab.receive,
-                      onTap: () => vm.changeTab(HomeTab.receive),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      children: [
+                        SidebarItem(
+                          icon: Icons.wifi,
+                          label: 'Receive',
+                          active: vm.currentTab == HomeTab.receive,
+                          onTap: () => vm.changeTab(HomeTab.receive),
+                          isDark: isDark,
+                          isExpanded: effectiveExpanded,
+                        ),
+                        SidebarItem(
+                          icon: Icons.send,
+                          label: 'Send',
+                          active: vm.currentTab == HomeTab.send,
+                          onTap: () => vm.changeTab(HomeTab.send),
+                          isDark: isDark,
+                          isExpanded: effectiveExpanded,
+                        ),
+                        SidebarItem(
+                          icon: Icons.settings,
+                          label: 'Settings',
+                          active: vm.currentTab == HomeTab.settings,
+                          onTap: () => vm.changeTab(HomeTab.settings),
+                          isDark: isDark,
+                          isExpanded: effectiveExpanded,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: _ThemeToggleButton(
                       isDark: isDark,
                       isExpanded: effectiveExpanded,
+                      themeMode: ref.watch(settingsProvider).theme,
+                      onThemeChanged: (themeMode) async {
+                        await ref.notifier(settingsProvider).setTheme(themeMode);
+                      },
                     ),
-                    SidebarItem(
-                      icon: Icons.send,
-                      label: 'Send',
-                      active: vm.currentTab == HomeTab.send,
-                      onTap: () => vm.changeTab(HomeTab.send),
-                      isDark: isDark,
-                      isExpanded: effectiveExpanded,
-                    ),
-                    SidebarItem(
-                      icon: Icons.settings,
-                      label: 'Settings',
-                      active: vm.currentTab == HomeTab.settings,
-                      onTap: () => vm.changeTab(HomeTab.settings),
-                      isDark: isDark,
-                      isExpanded: effectiveExpanded,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 主题切换按钮组件
+///
+/// 支持三种主题模式：浅色、深色、跟随系统
+/// 点击循环切换主题，带平滑过渡动画
+class _ThemeToggleButton extends StatefulWidget {
+  final bool isDark;
+  final bool isExpanded;
+  final ThemeMode themeMode;
+  final Function(ThemeMode) onThemeChanged;
+
+  const _ThemeToggleButton({
+    required this.isDark,
+    required this.isExpanded,
+    required this.themeMode,
+    required this.onThemeChanged,
+  });
+
+  @override
+  State<_ThemeToggleButton> createState() => _ThemeToggleButtonState();
+}
+
+class _ThemeToggleButtonState extends State<_ThemeToggleButton> with SingleTickerProviderStateMixin {
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeMode = widget.themeMode;
+    IconData icon;
+    String label;
+
+    switch (themeMode) {
+      case ThemeMode.light:
+        icon = Icons.light_mode;
+        label = 'Light';
+        break;
+      case ThemeMode.dark:
+        icon = Icons.dark_mode;
+        label = 'Dark';
+        break;
+      case ThemeMode.system:
+        icon = Icons.brightness_auto;
+        label = 'Auto';
+        break;
+    }
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTapDown: (_) => _scaleController.forward(),
+        onTapUp: (_) {
+          _scaleController.reverse();
+          final nextTheme = switch (themeMode) {
+            ThemeMode.light => ThemeMode.dark,
+            ThemeMode.dark => ThemeMode.system,
+            ThemeMode.system => ThemeMode.light,
+          };
+          widget.onThemeChanged(nextTheme);
         },
+        onTapCancel: () => _scaleController.reverse(),
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: widget.isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50,
+            ),
+            child: Row(
+              mainAxisAlignment: widget.isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) {
+                    return RotationTransition(
+                      turns: Tween<double>(begin: 0.5, end: 1).animate(animation),
+                      child: FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Icon(
+                    icon,
+                    key: ValueKey(icon),
+                    color: widget.isDark ? Colors.white : LinkDropColors.zinc900,
+                    size: 20,
+                  ),
+                ),
+                if (widget.isExpanded) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                        label,
+                        key: ValueKey(label),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: widget.isDark ? Colors.white : LinkDropColors.zinc900,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

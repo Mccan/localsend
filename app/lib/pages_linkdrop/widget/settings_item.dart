@@ -6,6 +6,7 @@ class SettingsItem extends StatelessWidget {
   final String title;
   final String? value;
   final Widget? trailing;
+  final Widget? child;
   final VoidCallback? onTap;
   final bool isDark;
 
@@ -15,6 +16,7 @@ class SettingsItem extends StatelessWidget {
     required this.isDark,
     this.value,
     this.trailing,
+    this.child,
     this.onTap,
     super.key,
   });
@@ -41,13 +43,19 @@ class SettingsItem extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? LinkDropColors.zinc200 : LinkDropColors.zinc900,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? LinkDropColors.zinc200 : LinkDropColors.zinc900,
+                    ),
+                  ),
+                  if (child != null) child!,
+                ],
               ),
             ),
             if (value != null)

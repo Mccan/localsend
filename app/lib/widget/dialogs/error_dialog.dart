@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/widget/glass/glass_dialog.dart';
 import 'package:routerino/routerino.dart';
 
 class ErrorDialog extends StatelessWidget {
@@ -9,15 +10,19 @@ class ErrorDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(t.dialogs.errorDialog.title),
-      content: SelectableText(error),
-      actions: [
-        TextButton(
-          onPressed: () => context.pop(),
-          child: Text(t.general.close),
-        ),
-      ],
+    return GlassDialog(
+      child: AlertDialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(t.dialogs.errorDialog.title),
+        content: SelectableText(error),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(),
+            child: Text(t.general.close),
+          ),
+        ],
+      ),
     );
   }
 }
