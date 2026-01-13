@@ -7,6 +7,9 @@ class LinkDropColors {
   static const teal500 = Color(0xFF14B8A6);
   static const teal600 = Color(0xFF0D9488);
 
+  // Error - Red
+  static const red500 = Color(0xFFEF4444);
+
   // Backgrounds
   static const zinc50 = Color(0xFFFAFAFA);
   static const white = Color(0xFFFFFFFF);
@@ -19,7 +22,7 @@ class LinkDropColors {
   static const zinc400 = Color(0xFFA1A1AA);
   static const zinc700 = Color(0xFF3F3F46);
   static const zinc800 = Color(0xFF27272A);
-  
+
   // Text
   static const zinc500 = Color(0xFF71717A); // Secondary text
 }
@@ -30,7 +33,7 @@ ThemeData getLinkDropTheme(Brightness brightness) {
   // Define ColorScheme
   final colorScheme = ColorScheme(
     brightness: brightness,
-    primary: LinkDropColors.teal500, 
+    primary: LinkDropColors.teal500,
     onPrimary: Colors.white,
     secondary: LinkDropColors.teal500,
     onSecondary: Colors.white,
@@ -68,7 +71,7 @@ ThemeData getLinkDropTheme(Brightness brightness) {
     colorScheme: colorScheme,
     scaffoldBackgroundColor: isDark ? LinkDropColors.zinc950 : LinkDropColors.zinc50,
     fontFamily: fontFamily,
-    
+
     // Card Theme
     cardTheme: CardThemeData(
       color: isDark ? LinkDropColors.zinc900 : LinkDropColors.white,
@@ -93,7 +96,7 @@ ThemeData getLinkDropTheme(Brightness brightness) {
     // Navigation Bar (Bottom)
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: isDark ? LinkDropColors.zinc950 : LinkDropColors.white,
-      indicatorColor: isDark ? LinkDropColors.zinc800 : LinkDropColors.teal500.withOpacity(0.1),
+      indicatorColor: isDark ? LinkDropColors.zinc800 : LinkDropColors.teal500.withValues(alpha: 0.1),
       iconTheme: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return IconThemeData(color: isDark ? Colors.white : LinkDropColors.teal600);
@@ -115,11 +118,25 @@ ThemeData getLinkDropTheme(Brightness brightness) {
         );
       }),
     ),
-    
+
     // Divider
     dividerTheme: DividerThemeData(
       color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
       thickness: 1,
     ),
   );
+}
+
+extension ColorSchemeExt on ColorScheme {
+  Color get warning {
+    return Colors.orange;
+  }
+
+  Color? get secondaryContainerIfDark {
+    return brightness == Brightness.dark ? secondaryContainer : null;
+  }
+
+  Color? get onSecondaryContainerIfDark {
+    return brightness == Brightness.dark ? onSecondaryContainer : null;
+  }
 }

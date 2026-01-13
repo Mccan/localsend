@@ -76,7 +76,7 @@ class _SidebarItemState extends State<SidebarItem> with SingleTickerProviderStat
               boxShadow: (widget.active && !widget.isDark)
                   ? [
                       BoxShadow(
-                        color: LinkDropColors.teal500.withOpacity(0.2),
+                        color: LinkDropColors.teal500.withValues(alpha: 0.2),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
