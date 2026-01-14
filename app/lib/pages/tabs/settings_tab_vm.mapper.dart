@@ -469,4 +469,3 @@ class _SettingsTabVmCopyWithImpl<$R, $Out>
     Then<$Out2, $R2> t,
   ) => _SettingsTabVmCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

@@ -10,6 +10,9 @@ class LinkDropColors {
   // Error - Red
   static const red500 = Color(0xFFEF4444);
 
+  // Warning - Orange
+  static const orange500 = Color(0xFFF97316);
+
   // Backgrounds
   static const zinc50 = Color(0xFFFAFAFA);
   static const white = Color(0xFFFFFFFF);

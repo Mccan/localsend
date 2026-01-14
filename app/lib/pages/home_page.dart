@@ -7,10 +7,12 @@ import 'package:localsend_app/config/init.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
-import 'package:localsend_app/pages/tabs/receive_tab.dart';
-import 'package:localsend_app/pages/tabs/send_tab.dart';
-import 'package:localsend_app/pages/tabs/settings_tab.dart';
+import 'package:localsend_app/pages/receive_page.dart';
+import 'package:localsend_app/pages/send_page.dart';
+import 'package:localsend_app/pages/settings_page.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
+import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/widget/responsive_builder.dart';
@@ -37,30 +39,27 @@ enum HomeTab {
   }
 }
 
-class HomePage extends StatefulWidget {
+class LinkDropHomePage extends StatefulWidget {
   final HomeTab initialTab;
-
-  /// It is important for the initializing step
-  /// because the first init clears the cache
   final bool appStart;
 
-  const HomePage({
+  const LinkDropHomePage({
     required this.initialTab,
     required this.appStart,
     super.key,
   });
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<LinkDropHomePage> createState() => _LinkDropHomePageState();
 }
 
-class _HomePageState extends State<HomePage> with Refena {
+class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
   bool _dragAndDropIndicator = false;
+  bool _isSidebarExpanded = true;
 
   @override
   void initState() {
     super.initState();
-
     ensureRef((ref) async {
       ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(widget.initialTab));
       await postInit(context, ref, widget.appStart);
@@ -71,24 +70,16 @@ class _HomePageState extends State<HomePage> with Refena {
   Widget build(BuildContext context) {
     Translations.of(context); // rebuild on locale change
     final vm = context.watch(homePageControllerProvider);
+    final settings = context.watch(settingsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return DropTarget(
-      onDragEntered: (_) {
-        setState(() {
-          _dragAndDropIndicator = true;
-        });
-      },
-      onDragExited: (_) {
-        setState(() {
-          _dragAndDropIndicator = false;
-        });
-      },
+      onDragEntered: (_) => setState(() => _dragAndDropIndicator = true),
+      onDragExited: (_) => setState(() => _dragAndDropIndicator = false),
       onDragDone: (event) async {
         if (event.files.length == 1 && Directory(event.files.first.path).existsSync()) {
-          // user dropped a directory
           await ref.redux(selectedSendingFilesProvider).dispatchAsync(AddDirectoryAction(event.files.first.path));
         } else {
-          // user dropped one or more files
           await ref
               .redux(selectedSendingFilesProvider)
               .dispatchAsync(
@@ -111,34 +102,162 @@ class _HomePageState extends State<HomePage> with Refena {
                       NavigationRail(
                         selectedIndex: vm.currentTab.index,
                         onDestinationSelected: (index) => vm.changeTab(HomeTab.values[index]),
-                        extended: sizingInformation.isDesktop,
+                        extended: _isSidebarExpanded,
                         backgroundColor: Theme.of(context).cardColorWithElevation,
-                        leading: sizingInformation.isDesktop
-                            ? Column(
-                                children: [
-                                  checkPlatform([TargetPlatform.macOS])
-                                      ? // considered adding some extra space so it looks more natural
-                                        SizedBox(height: 40)
-                                      : SizedBox(height: 20),
-                                  const Text(
-                                    'LocalSend',
-                                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                                    textAlign: TextAlign.center,
+                        selectedLabelTextStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        leading: Column(
+                          children: [
+                            const SizedBox(height: 40),
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: AnimatedRotation(
+                                          turns: _isSidebarExpanded ? 0 : 0.5,
+                                          duration: const Duration(milliseconds: 200),
+                                          child: Icon(
+                                            Icons.send,
+                                            size: 24,
+                                            color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                          ),
+                                        ),
+                                      ),
+                                      if (_isSidebarExpanded) ...[
+                                        const SizedBox(width: 12),
+                                        const Text(
+                                          'LinkDrop',
+                                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ],
                                   ),
-                                  SizedBox(height: 20),
-                                ],
-                              )
-                            : checkPlatform([TargetPlatform.macOS])
-                            ? SizedBox(
-                                height: 20,
-                              )
-                            : null,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                        ),
                         destinations: HomeTab.values.map((tab) {
                           return NavigationRailDestination(
                             icon: Icon(tab.icon),
+                            selectedIcon: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(tab.icon, color: Colors.white, size: 24),
+                            ),
                             label: Text(tab.label),
                           );
                         }).toList(),
+                      ),
+                      // Bottom items: Theme & Profile
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () async {
+                                    await ref.notifier(settingsProvider).setTheme(
+                                          settings.theme == ThemeMode.light
+                                              ? ThemeMode.dark
+                                              : ThemeMode.light,
+                                        );
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
+                                    child: Row(
+                                      mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          settings.theme == ThemeMode.light
+                                              ? Icons.dark_mode
+                                              : Icons.light_mode,
+                                          size: 24,
+                                        ),
+                                        if (_isSidebarExpanded) ...[
+                                          const SizedBox(width: 16),
+                                          Text(t.settingsTab.general.brightness, style: const TextStyle(fontSize: 14)),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Theme(
+                                data: Theme.of(context).copyWith(
+                                  popupMenuTheme: PopupMenuThemeData(
+                                    color: isDark ? LinkDropColors.zinc900 : Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200)),
+                                  ),
+                                ),
+                                child: PopupMenuButton<String>(
+                                  offset: const Offset(20, -120),
+                                  tooltip: '',
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      enabled: false,
+                                      child: Text('Login Status: Guest'),
+                                    ),
+                                    const PopupMenuItem(
+                                      enabled: false,
+                                      child: Text('VIP: Inactive'),
+                                    ),
+                                    PopupMenuItem(
+                                      enabled: false,
+                                      child: Row(
+                                        children: [
+                                          const Text('Invite: 888888'),
+                                          const SizedBox(width: 8),
+                                          Icon(Icons.copy, size: 16, color: Theme.of(context).colorScheme.primary),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
+                                    child: Row(
+                                      mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.person,
+                                          size: 24,
+                                        ),
+                                        if (_isSidebarExpanded) ...[
+                                          const SizedBox(width: 16),
+                                          const Text('Profile', style: TextStyle(fontSize: 14)),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       // makes the top draggable
                       Positioned(
@@ -157,9 +276,9 @@ class _HomePageState extends State<HomePage> with Refena {
                         controller: vm.controller,
                         physics: const NeverScrollableScrollPhysics(),
                         children: const [
-                          SafeArea(child: ReceiveTab()),
-                          SafeArea(child: SendTab()),
-                          SettingsTab(),
+                          SafeArea(child: ReceivePage()),
+                          SafeArea(child: SendPage()),
+                          SettingsPage(),
                         ],
                       ),
                       if (_dragAndDropIndicator)

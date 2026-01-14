@@ -22,6 +22,7 @@ import 'package:localsend_app/model/state/send/sending_file.dart';
 import 'package:localsend_app/pages/home_page.dart';
 import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/send_page.dart';
+import 'package:localsend_app/pages/send_session_page.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
 import 'package:localsend_app/provider/progress_provider.dart';
@@ -139,7 +140,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
     if (!background) {
       // ignore: use_build_context_synchronously, unawaited_futures
       Routerino.context.push(
-        () => SendPage(showAppBar: false, closeSessionOnClose: true, sessionId: sessionId),
+        () => SendSessionPage(showAppBar: false, closeSessionOnClose: true, sessionId: sessionId),
         transition: RouterinoTransition.fade(),
       );
     }
@@ -279,7 +280,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
 
       if (state[sessionId]?.background == false) {
         // ignore: use_build_context_synchronously, unawaited_futures
-        Routerino.context.pushRootImmediately(() => const HomePage(initialTab: HomeTab.send, appStart: false));
+        Routerino.context.pushRootImmediately(() => const LinkDropHomePage(initialTab: HomeTab.send, appStart: false));
       }
 
       closeSession(sessionId);
@@ -296,7 +297,7 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
 
       // ignore: use_build_context_synchronously, unawaited_futures
       Routerino.context.pushAndRemoveUntil(
-        removeUntil: HomePage,
+        removeUntil: LinkDropHomePage,
         transition: RouterinoTransition.fade(),
         // immediately is not possible: https://github.com/flutter/flutter/issues/121910
         builder: () => ProgressPage(

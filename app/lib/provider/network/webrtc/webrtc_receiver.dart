@@ -9,6 +9,7 @@ import 'package:localsend_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_app/model/state/server/receiving_file.dart';
 import 'package:localsend_app/model/state/settings_state.dart';
 import 'package:localsend_app/pages/receive_page.dart';
+import 'package:localsend_app/pages/receive_session_page.dart';
 import 'package:localsend_app/provider/network/webrtc/signaling_provider.dart';
 import 'package:localsend_app/rust/api/model.dart';
 import 'package:localsend_app/rust/api/webrtc.dart';
@@ -133,7 +134,7 @@ class _AcceptOfferAction extends AsyncReduxAction<WebRTCReceiveService, WebRTCRe
     });
 
     // ignore: unawaited_futures, use_build_context_synchronously
-    Routerino.context.push(() => ReceivePage(vm));
+    Routerino.context.push(() => ReceiveSessionPage(vm));
 
     return state.copyWith(
       controller: controller,

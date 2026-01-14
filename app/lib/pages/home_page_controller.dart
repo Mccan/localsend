@@ -5,7 +5,7 @@ import 'package:refena_flutter/refena_flutter.dart';
 class HomePageVm {
   final PageController controller;
   final HomeTab currentTab;
-  final void Function(HomeTab) changeTab;
+  final void Function(HomeTab, {bool animate}) changeTab;
 
   HomePageVm({
     required this.controller,
@@ -24,19 +24,26 @@ class HomePageController extends ReduxNotifier<HomePageVm> {
     return HomePageVm(
       controller: PageController(),
       currentTab: HomeTab.receive,
-      changeTab: (tab) => redux.dispatch(ChangeTabAction(tab)),
+      changeTab: (tab, {bool animate = true}) => redux.dispatch(ChangeTabAction(tab, animate: animate)),
     );
   }
 }
 
 class ChangeTabAction extends ReduxAction<HomePageController, HomePageVm> {
   final HomeTab tab;
+  final bool animate;
 
-  ChangeTabAction(this.tab);
+  ChangeTabAction(this.tab, {this.animate = true});
 
   @override
   HomePageVm reduce() {
-    state.controller.jumpToPage(tab.index);
+    if (animate && state.controller.hasClients) {
+      state.controller.animateToPage(
+        tab.index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
     return HomePageVm(
       controller: state.controller,
       currentTab: tab,

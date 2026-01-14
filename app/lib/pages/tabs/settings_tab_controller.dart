@@ -35,6 +35,10 @@ final settingsTabControllerProvider = ReduxProvider<SettingsTabController, Setti
   );
 });
 
+/// 设置标签页控制器
+///
+/// 管理设置页面的所有状态和操作
+/// 包括主题切换、语言选择、服务器管理等
 class SettingsTabController extends ReduxNotifier<SettingsTabVm> {
   final SettingsService _settingsService;
   final ServerService _serverService;
@@ -75,7 +79,7 @@ class SettingsTabController extends ReduxNotifier<SettingsTabVm> {
       showInContextMenu: false,
       onChangeTheme: (context, theme) async {
         await _settingsService.setTheme(theme);
-        await sleepAsync(500); // workaround: brightness takes some time to be updated
+        await sleepAsync(500);
         if (context.mounted) {
           await updateSystemOverlayStyle(context);
         }
@@ -130,16 +134,14 @@ class SettingsTabController extends ReduxNotifier<SettingsTabVm> {
           );
 
           if (newServerState != null) {
-            // the new state is always valid, so we can "repair" user's setting
             state.aliasController.text = newServerState.alias;
             state.portController.text = newServerState.port.toString();
             await _settingsService.setAlias(newServerState.alias);
             await _settingsService.setPort(newServerState.port);
             external(_isolateController).dispatch(IsolateSendMulticastRestartListenerAction());
-            external(_localIpService).dispatchAsync(FetchLocalIpAction()); // ignore: unawaited_futures
+            external(_localIpService).dispatchAsync(FetchLocalIpAction());
           }
         } catch (e) {
-          // ignore: use_build_context_synchronously
           context.showSnackBar(e.toString());
         }
       },
@@ -147,7 +149,6 @@ class SettingsTabController extends ReduxNotifier<SettingsTabVm> {
         try {
           await _serverService.startServerFromSettings();
         } catch (e) {
-          // ignore: use_build_context_synchronously
           context.showSnackBar(e.toString());
         }
       },

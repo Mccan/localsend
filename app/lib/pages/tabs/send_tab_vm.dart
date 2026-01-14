@@ -7,6 +7,7 @@ import 'package:localsend_app/model/persistence/favorite_device.dart';
 import 'package:localsend_app/model/send_mode.dart';
 import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/send_page.dart';
+import 'package:localsend_app/pages/send_session_page.dart';
 import 'package:localsend_app/pages/web_send_page.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
@@ -24,6 +25,10 @@ import 'package:localsend_app/widget/dialogs/no_files_dialog.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
+/// 发送标签页视图模型
+///
+/// 提供发送页面的所有状态和操作方法
+/// 包括文件选择、设备发现、发送模式切换等功能
 class SendTabVm {
   final SendMode sendMode;
   final List<CrossFile> selectedFiles;
@@ -52,6 +57,9 @@ class SendTabVm {
   });
 }
 
+/// 发送标签页视图模型提供者
+///
+/// 提供发送页面的响应式状态管理
 final sendTabVmProvider = ViewProvider((ref) {
   final sendMode = ref.watch(settingsProvider.select((s) => s.sendMode));
   final selectedFiles = ref.watch(selectedSendingFilesProvider);
@@ -159,7 +167,7 @@ final sendTabVmProvider = ViewProvider((ref) {
         if (session.status == SessionStatus.waiting) {
           ref.notifier(sendProvider).setBackground(session.sessionId, false);
           await context.push(
-            () => SendPage(showAppBar: true, closeSessionOnClose: false, sessionId: session.sessionId),
+            () => SendSessionPage(showAppBar: true, closeSessionOnClose: false, sessionId: session.sessionId),
             transition: RouterinoTransition.fade(),
           );
           ref.notifier(sendProvider).setBackground(session.sessionId, true);
@@ -179,7 +187,6 @@ final sendTabVmProvider = ViewProvider((ref) {
       }
 
       if (session != null) {
-        // close old session
         ref.notifier(sendProvider).closeSession(session.sessionId);
       }
 
@@ -194,6 +201,9 @@ final sendTabVmProvider = ViewProvider((ref) {
   );
 });
 
+/// 发送标签页初始化操作
+///
+/// 在页面初始化时自动开始扫描设备
 class SendTabInitAction extends AsyncGlobalAction {
   final BuildContext context;
 

@@ -42,7 +42,7 @@ class TranslationsZhCn extends Translations {
   @override
   String get locale => '简体中文';
   @override
-  String get appName => 'LocalSend';
+  String get appName => '链传';
   @override
   late final _TranslationsGeneralZhCn general = _TranslationsGeneralZhCn._(_root);
   @override
@@ -209,6 +209,8 @@ class _TranslationsSendTabZhCn extends TranslationsSendTabEn {
   @override
   String get title => '发送';
   @override
+  String get subtitle => '1、搜设备；2、选文件；3、选设备即可发送';
+  @override
   late final _TranslationsSendTabSelectionZhCn selection = _TranslationsSendTabSelectionZhCn._(_root);
   @override
   late final _TranslationsSendTabPickerZhCn picker = _TranslationsSendTabPickerZhCn._(_root);
@@ -232,6 +234,14 @@ class _TranslationsSendTabZhCn extends TranslationsSendTabEn {
   String get help => '请确保目标连接到同一个 Wi‑Fi 网络。';
   @override
   String get placeItems => '列出要分享的项目。';
+  @override
+  String get addMore => '添加更多';
+  @override
+  String get editList => '编辑列表';
+  @override
+  String get scanning => '正在扫描附近的设备...';
+  @override
+  String get selectFiles => '选择要发送的文件';
 }
 
 // Path: settingsTab
@@ -243,6 +253,8 @@ class _TranslationsSettingsTabZhCn extends TranslationsSettingsTabEn {
   // Translations
   @override
   String get title => '设置';
+  @override
+  String get subtitle => '管理您的偏好设置';
   @override
   late final _TranslationsSettingsTabGeneralZhCn general = _TranslationsSettingsTabGeneralZhCn._(_root);
   @override
@@ -335,8 +347,11 @@ class _TranslationsReceivePageZhCn extends TranslationsReceivePageEn {
 
   // Translations
   @override
-  String subTitle({required num n}) =>
-      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(n, one: '想要发送给你一个文件', other: '想要发送给你 ${n} 个文件');
+  String subTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(
+    n,
+    one: '想要发送给你一个文件',
+    other: '想要发送给你 ${n} 个文件',
+  );
   @override
   String get subTitleMessage => '发送给你了一条消息：';
   @override
@@ -414,8 +429,11 @@ class _TranslationsWebSharePageZhCn extends TranslationsWebSharePageEn {
   @override
   String get error => '在启动服务器过程中发生了错误。';
   @override
-  String openLink({required num n}) =>
-      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(n, one: '在浏览器中打开链接：', other: '在浏览器中打开其中一个链接：');
+  String openLink({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('zh'))(
+    n,
+    one: '在浏览器中打开链接：',
+    other: '在浏览器中打开其中一个链接：',
+  );
   @override
   String get requests => '请求';
   @override
@@ -1370,7 +1388,11 @@ class _TranslationsDialogsQuickSaveFromFavoritesNoticeZhCn extends TranslationsD
   @override
   String get title => _root.general.quickSaveFromFavorites;
   @override
-  List<String> get content => ['当前会自动接受收藏夹中设备的文件请求。', '警告：这目前并非绝对安全，知道您收藏夹列表中的设备指纹被黑客窃取，其仍可以向您发送文件。', '但是，此选项比“允许任何设备”更安全。'];
+  List<String> get content => [
+    '当前会自动接受收藏夹中设备的文件请求。',
+    '警告：这目前并非绝对安全，知道您收藏夹列表中的设备指纹被黑客窃取，其仍可以向您发送文件。',
+    '但是，此选项比“允许任何设备”更安全。',
+  ];
 }
 
 // Path: dialogs.pin

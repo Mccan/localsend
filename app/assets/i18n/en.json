@@ -1,6 +1,6 @@
 {
   "locale": "English",
-  "appName": "LocalSend",
+  "appName": "LinkDrop",
   "general": {
     "accept": "Accept",
     "accepted": "Accepted",
@@ -60,6 +60,7 @@
   },
   "sendTab": {
     "title": "Send",
+    "subtitle": "1. Search devices; 2. Select files; 3. Select device to send",
     "selection": {
       "title": "Selection",
       "files": "Files: {files}",
@@ -86,10 +87,15 @@
     },
     "sendModeHelp": "Explanation",
     "help": "Please ensure that the desired target is also on the same Wi-Fi network.",
-    "placeItems": "Place items to share."
+    "placeItems": "Place items to share.",
+    "addMore": "Add more",
+    "editList": "Edit list",
+    "scanning": "Scanning for nearby devices...",
+    "selectFiles": "Select files to send"
   },
   "settingsTab": {
     "title": "Settings",
+    "subtitle": "Manage your preferences",
     "general": {
       "title": "General",
       "brightness": "Theme",

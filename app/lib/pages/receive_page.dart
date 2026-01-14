@@ -1,351 +1,378 @@
 import 'dart:async';
 
-import 'package:common/model/device.dart';
-import 'package:common/model/dto/file_dto.dart';
 import 'package:common/model/session_status.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/persistence/color_mode.dart';
-import 'package:localsend_app/pages/receive_options_page.dart';
-import 'package:localsend_app/provider/favorites_provider.dart';
-import 'package:localsend_app/provider/selection/selected_receiving_files_provider.dart';
+import 'package:localsend_app/model/state/settings_state.dart';
+import 'package:localsend_app/pages/receive_history_page.dart';
+import 'package:localsend_app/pages/tabs/receive_tab_vm.dart';
+import 'package:localsend_app/pages/widget/pulse_ripple.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/util/device_type_ext.dart';
-import 'package:localsend_app/util/favorites.dart';
-import 'package:localsend_app/util/ip_helper.dart';
-import 'package:localsend_app/util/native/platform_check.dart';
-import 'package:localsend_app/util/native/taskbar_helper.dart';
-import 'package:localsend_app/util/ui/snackbar.dart';
-import 'package:localsend_app/widget/device_bage.dart';
-import 'package:localsend_app/widget/responsive_list_view.dart';
+import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-class ReceivePageVm {
-  final SessionStatus? status;
-  final Device sender;
-
-  /// Show hashtag and device model.
-  final bool showSenderInfo;
-  final List<FileDto> files;
-  final String? message;
-  final bool isLink;
-  final void Function() onAccept;
-  final void Function() onDecline;
-  final void Function() onClose;
-
-  ReceivePageVm({
-    required this.status,
-    required this.sender,
-    required this.showSenderInfo,
-    required this.files,
-    required this.message,
-    required this.onAccept,
-    required this.onDecline,
-    required this.onClose,
-  }) : isLink = message != null && (Uri.tryParse(message)?.isAbsolute ?? false);
-}
-
+/// 接收页面
+///
+/// 显示接收文件的状态和本地IP地址
+/// 支持快速保存功能和历史记录查看
 class ReceivePage extends StatefulWidget {
-  final ViewProvider<ReceivePageVm> vm;
-
-  const ReceivePage(this.vm);
+  const ReceivePage({super.key});
 
   @override
   State<ReceivePage> createState() => _ReceivePageState();
 }
 
-class _ReceivePageState extends State<ReceivePage> with Refena {
-  bool _showFullIp = false;
+class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  int _dotCount = 1;
+  Timer? _timer;
+  Timer? _resetTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    _startDotAnimation();
+  }
+
+  void _startDotAnimation() {
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      setState(() {
+        _dotCount = (_dotCount % 3) + 1;
+      });
+    });
+  }
+
+  void _scheduleReset() {
+    _resetTimer?.cancel();
+    _resetTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _timer?.cancel();
+    _resetTimer?.cancel();
+    super.dispose();
+  }
+
+  String _getStatusText(SessionStatus? status) {
+    if (status == null) {
+      return '${t.receiveTab.readyToReceive}${'.' * _dotCount}';
+    }
+
+    switch (status) {
+      case SessionStatus.sending:
+        return '${t.receiveTab.receiving}${'.' * _dotCount}';
+      case SessionStatus.finished:
+      case SessionStatus.finishedWithErrors:
+        return t.receiveTab.received;
+      default:
+        return '${t.receiveTab.readyToReceive}${'.' * _dotCount}';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch(
-      widget.vm,
-      listener: (prev, next) {
-        if (prev.status != next.status) {
-          // ignore: discarded_futures
-          TaskbarHelper.visualizeStatus(next.status);
-        }
-      },
-    );
+    final vm = context.watch(receiveTabVmProvider);
+    final settings = context.watch(settingsProvider);
+    final settingsService = context.notifier(settingsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sessionStatus = vm.serverState?.session?.status;
 
-    if (vm.status == null && vm.message == null) {
-      return const Scaffold(
-        body: SizedBox(),
-      );
+    if (sessionStatus == SessionStatus.finished || sessionStatus == SessionStatus.finishedWithErrors) {
+      _scheduleReset();
     }
 
-    final senderFavoriteEntry = ref.watch(favoritesProvider.select((state) => state.findDevice(vm.sender)));
-
-    return ViewModelBuilder(
-      provider: (ref) => widget.vm,
-      onFirstFrame: (context, vm) {
-        ref.notifier(selectedReceivingFilesProvider).setFiles(vm.files);
-      },
-      dispose: (ref) {
-        ref.dispose(widget.vm);
-        unawaited(TaskbarHelper.clearProgressBar());
-      },
-      builder: (context, vm) {
-        return PopScope(
-          onPopInvokedWithResult: (didPop, result) {
-            if (didPop) {
-              vm.onDecline();
-            }
-          },
-          canPop: true,
-          child: Scaffold(
-            body: SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: ResponsiveListView.defaultMaxWidth),
-                  child: Builder(
-                    builder: (context) {
-                      final height = MediaQuery.of(context).size.height;
-                      final smallUi = vm.message != null && height < 600;
-                      return Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: smallUi ? 20 : 30),
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  if (vm.showSenderInfo && !smallUi)
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 10),
-                                      child: Icon(vm.sender.deviceType.icon, size: 64),
-                                    ),
-                                  Builder(
-                                    builder: (context) {
-                                      final alias = senderFavoriteEntry?.alias ?? vm.sender.alias;
-                                      if (alias.isEmpty) {
-                                        return Text('', style: TextStyle(fontSize: smallUi ? 32 : 48));
-                                      }
-                                      return FittedBox(
-                                        child: Text(
-                                          alias,
-                                          style: TextStyle(fontSize: smallUi ? 32 : 48),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  if (vm.showSenderInfo) ...[
-                                    const SizedBox(height: 10),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        InkWell(
-                                          onTap: () {
-                                            setState(() {
-                                              _showFullIp = !_showFullIp;
-                                            });
-                                          },
-                                          child: DeviceBadge(
-                                            backgroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
-                                            foregroundColor: Theme.of(context).colorScheme.onInverseSurface,
-                                            label: switch (vm.sender.ip) {
-                                              String ip => _showFullIp ? ip : '#${ip.visualId}',
-                                              null => 'WebRTC',
-                                            },
-                                          ),
-                                        ),
-                                        if (vm.sender.deviceModel != null) ...[
-                                          const SizedBox(width: 10),
-                                          DeviceBadge(
-                                            backgroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
-                                            foregroundColor: Theme.of(context).colorScheme.onInverseSurface,
-                                            label: vm.sender.deviceModel!,
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ],
-                                  const SizedBox(height: 40),
-                                  Text(
-                                    vm.message != null
-                                        ? (vm.isLink ? t.receivePage.subTitleLink : t.receivePage.subTitleMessage)
-                                        : t.receivePage.subTitle(n: vm.files.length),
-                                    style: smallUi ? null : Theme.of(context).textTheme.titleLarge,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  if (vm.message != null)
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 20),
-                                          child: SizedBox(
-                                            height: 100,
-                                            child: Card(
-                                              child: SingleChildScrollView(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(10),
-                                                  child: SelectableText(
-                                                    vm.message!,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                unawaited(
-                                                  Clipboard.setData(ClipboardData(text: vm.message!)),
-                                                );
-                                                if (checkPlatformIsDesktop()) {
-                                                  context.showSnackBar(t.general.copiedToClipboard);
-                                                }
-                                                vm.onAccept();
-                                                context.pop();
-                                              },
-                                              child: Text(t.general.copy),
-                                            ),
-                                            if (vm.isLink)
-                                              Padding(
-                                                padding: const EdgeInsetsDirectional.only(start: 20),
-                                                child: ElevatedButton(
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Theme.of(context).colorScheme.primary,
-                                                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                                                  ),
-                                                  onPressed: () {
-                                                    // ignore: discarded_futures
-                                                    launchUrl(Uri.parse(vm.message!), mode: LaunchMode.externalApplication);
-                                                    vm.onAccept();
-                                                    context.pop();
-                                                  },
-                                                  child: Text(t.general.open),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                ],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Column(
+        children: [
+          // 顶部标题栏
+          Padding(
+            padding: EdgeInsets.fromLTRB(32, MediaQuery.of(context).padding.top + 16, 32, 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            t.receiveTab.title,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : LinkDropColors.zinc900,
+                            ),
+                          ),
+                          const Spacer(),
+                          // 历史记录按钮
+                          IconButton(
+                            onPressed: () {
+                              // ignore: discarded_futures
+                              context.push(() => const ReceiveHistoryPage());
+                            },
+                            icon: const Icon(Icons.history),
+                            tooltip: 'History',
+                            color: LinkDropColors.zinc500,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        t.receiveTab.subtitle,
+                        style: TextStyle(
+                          color: LinkDropColors.zinc500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // 高级信息直接显示
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _InfoItem(
+                            label: t.receiveTab.infoBox.alias,
+                            value: settings.alias,
+                            onTap: () => _showAliasDialog(context, settings, settingsService),
+                            isDark: isDark,
+                          ),
+                          if (vm.localIps.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: _InfoItem(
+                                label: t.receiveTab.infoBox.ip,
+                                value: vm.localIps.first,
+                                isDark: isDark,
                               ),
                             ),
-                            _Actions(vm),
-                          ],
-                        ),
-                      );
-                    },
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: _InfoItem(
+                              label: t.receiveTab.infoBox.port,
+                              value: vm.serverState?.port.toString() ?? '-',
+                              isDark: isDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
+              ],
+            ),
+          ),
+
+          // 主内容区域
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // 脉冲动画图标
+                  PulseRipple(
+                    color: LinkDropColors.teal500,
+                    child: Container(
+                      width: 160,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        color: isDark ? LinkDropColors.zinc900 : Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.download_rounded,
+                        size: 64,
+                        color: LinkDropColors.teal500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  Text(
+                    '${t.receiveTab.readyToReceive}${'.' * _dotCount}',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : LinkDropColors.zinc900,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 别名显示
+                  InkWell(
+                    onTap: () {
+                      _showAliasDialog(context, settings, settingsService);
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.wifi, size: 16, color: LinkDropColors.zinc500),
+                          const SizedBox(width: 8),
+                          Text(
+                            settings.alias,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: LinkDropColors.zinc500,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(Icons.edit, size: 14, color: LinkDropColors.zinc500),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // 自动保存开关
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark ? LinkDropColors.zinc900 : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          t.general.quickSave,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : LinkDropColors.zinc900,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Switch(
+                          value: vm.quickSaveSettings,
+                          onChanged: (value) => vm.onSetQuickSave(context, value),
+                          activeThumbColor: LinkDropColors.teal500,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        );
-      },
+        ],
+      ),
+    );
+  }
+
+  void _showAliasDialog(BuildContext context, SettingsState settings, SettingsService settingsService) {
+    final controller = TextEditingController(text: settings.alias);
+
+    // ignore: discarded_futures
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t.receiveTab.infoBox.alias),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: t.receiveTab.infoBox.alias,
+            border: const OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // ignore: discarded_futures
+              Navigator.of(context).pop();
+            },
+            child: Text(t.general.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                // ignore: discarded_futures
+                settingsService.setAlias(controller.text);
+              }
+              // ignore: discarded_futures
+              Navigator.of(context).pop();
+            },
+            child: Text(t.general.save),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _Actions extends StatelessWidget {
-  final ReceivePageVm vm;
+class _InfoItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final VoidCallback? onTap;
+  final bool isDark;
 
-  const _Actions(this.vm);
+  const _InfoItem({
+    required this.label,
+    required this.value,
+    this.onTap,
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final selectedFiles = context.watch(selectedReceivingFilesProvider);
-    final colorMode = context.watch(settingsProvider.select((state) => state.colorMode));
-
-    if (vm.message != null) {
-      return Center(
-        child: TextButton.icon(
-          style: TextButton.styleFrom(
-            foregroundColor: Theme.of(context).colorScheme.onSurface,
-          ),
-          onPressed: () {
-            vm.onAccept();
-            context.pop();
-          },
-          icon: const Icon(Icons.close),
-          label: Text(t.general.close),
-        ),
-      );
-    }
-
-    if (vm.status == SessionStatus.canceledBySender) {
-      return Column(
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Text(
-              t.receivePage.canceled,
-              style: TextStyle(color: Theme.of(context).colorScheme.warning),
-              textAlign: TextAlign.center,
+          Text(
+            '$label: ',
+            style: TextStyle(
+              color: LinkDropColors.zinc500,
+              fontSize: 12,
             ),
           ),
-          Center(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                vm.onClose();
-                context.pop();
-              },
-              icon: const Icon(Icons.check_circle),
-              label: Text(t.general.close),
+          SelectableText(
+            value,
+            style: TextStyle(
+              color: isDark ? Colors.white : LinkDropColors.zinc900,
+              fontSize: 12,
+              fontFamily: 'monospace',
             ),
           ),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 20),
-          child: TextButton.icon(
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
-            ),
-            onPressed: () async {
-              await context.push(() => ReceiveOptionsPage(vm));
-            },
-            icon: const Icon(Icons.settings),
-            label: Text(t.receiveOptionsPage.title),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                elevation: colorMode == ColorMode.yaru ? 0 : null,
-                backgroundColor: colorMode == ColorMode.yaru ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.error,
-                foregroundColor: colorMode == ColorMode.yaru ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onError,
-              ),
-              onPressed: () {
-                vm.onDecline();
-                context.pop();
-              },
-              icon: const Icon(Icons.close),
-              label: Text(t.general.decline),
-            ),
-            const SizedBox(width: 20),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              ),
-              onPressed: selectedFiles.isEmpty ? null : () => vm.onAccept(),
-              icon: const Icon(Icons.check_circle),
-              label: Text(t.general.accept),
+          if (onTap != null) ...[
+            const SizedBox(width: 4),
+            Icon(
+              Icons.edit,
+              size: 12,
+              color: LinkDropColors.zinc500,
             ),
           ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

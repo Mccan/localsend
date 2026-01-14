@@ -5,11 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
-import 'package:localsend_app/pages_linkdrop/language_page.dart';
-import 'package:localsend_app/pages_linkdrop/tabs/settings_tab_controller.dart';
-import 'package:localsend_app/pages_linkdrop/widget/settings_group.dart';
-import 'package:localsend_app/pages_linkdrop/widget/settings_item.dart';
-import 'package:localsend_app/pages_linkdrop/widget/settings_text_field.dart';
+import 'package:localsend_app/pages/language_page.dart';
+import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
+import 'package:localsend_app/pages/widget/settings_group.dart';
+import 'package:localsend_app/pages/widget/settings_item.dart';
+import 'package:localsend_app/pages/widget/settings_text_field.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/alias_generator.dart';
@@ -98,8 +98,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Manage your preferences',
+                    Text(
+                      t.settingsTab.subtitle,
                       style: TextStyle(
                         color: LinkDropColors.zinc500,
                         fontSize: 14,

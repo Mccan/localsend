@@ -1,27 +1,25 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:common/model/dto/file_dto.dart';
 import 'package:common/model/file_status.dart';
 import 'package:common/model/session_status.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/model/state/send/send_session_state.dart';
 import 'package:localsend_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/progress_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/file_size_helper.dart';
 import 'package:localsend_app/util/file_speed_helper.dart';
 import 'package:localsend_app/util/native/open_file.dart';
 import 'package:localsend_app/util/native/open_folder.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/native/taskbar_helper.dart';
-import 'package:localsend_app/util/ui/nav_bar_padding.dart';
-import 'package:localsend_app/widget/custom_basic_appbar.dart';
 import 'package:localsend_app/widget/custom_progress_bar.dart';
 import 'package:localsend_app/widget/dialogs/cancel_session_dialog.dart';
 import 'package:localsend_app/widget/dialogs/error_dialog.dart';
@@ -48,13 +46,12 @@ class ProgressPage extends StatefulWidget {
 
 class _ProgressPageState extends State<ProgressPage> with Refena {
   int _totalBytes = double.maxFinite.toInt();
-  int _lastRemainingTimeUpdate = 0; // millis since epoch
+  int _lastRemainingTimeUpdate = 0;
   String? _remainingTime;
-  List<FileDto> _files = []; // also contains declined files (files without token)
+  List<FileDto> _files = [];
   Set<String> _selectedFiles = {};
   SessionStatus? _lastStatus;
 
-  // If [autoFinish] is enabled, we wait a few seconds before automatically closing the session.
   int _finishCounter = 3;
   Timer? _finishTimer;
   Timer? _wakelockPlusTimer;
@@ -65,13 +62,11 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
   void initState() {
     super.initState();
 
-    // init
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         unawaited(WakelockPlus.enable());
       } catch (_) {}
 
-      // Periodically call WakelockPlus.enable() to keep the screen awake
       _wakelockPlusTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
         final finished =
             ref.read(serverProvider)?.session?.files.values.map((e) => e.status).isFinishedOrSkipped ??
@@ -112,8 +107,6 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
         final receiveSession = ref.read(serverProvider)?.session;
         if (receiveSession != null) {
           _files = receiveSession.files.values.map((f) => f.file).toList();
-
-          // We previously used f.token != null here, but this may not work on very fast networks.
           _selectedFiles = receiveSession.files.values.where((f) => f.status != FileStatus.skipped).map((f) => f.file.id).toSet();
         } else {
           final sendSession = ref.read(sendProvider)[widget.sessionId];
@@ -136,7 +129,6 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
     final result = status == null || keepSession || await _askCancelConfirmation(status);
 
     if (result && mounted) {
-      // ignore: unawaited_futures
       context.popUntilRoot();
     }
   }
@@ -172,9 +164,9 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
     super.dispose();
     _finishTimer?.cancel();
     _wakelockPlusTimer?.cancel();
-    TaskbarHelper.clearProgressBar(); // ignore: discarded_futures
+    TaskbarHelper.clearProgressBar();
     try {
-      WakelockPlus.disable(); // ignore: discarded_futures
+      WakelockPlus.disable();
     } catch (_) {}
   }
 
@@ -200,11 +192,9 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
     final status = commonSessionState.status;
 
     if (status == SessionStatus.sending) {
-      // ignore: discarded_futures
       TaskbarHelper.setProgressBar(currBytes, _totalBytes);
     } else if (status != _lastStatus) {
       _lastStatus = status;
-      // ignore: discarded_futures
       TaskbarHelper.visualizeStatus(status);
     }
 
@@ -230,28 +220,25 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          // Already popped.
-          // Because the user cannot pop this page, we can safely assume that all sessions are closed if they should be.
           return;
         }
         _exit(closeSession: widget.closeSessionOnClose);
       },
       canPop: false,
       child: Scaffold(
-        appBar: widget.showAppBar ? basicLocalSendAppbar(title) : null,
+        appBar: widget.showAppBar ? AppBar(title: Text(title)) : null,
         body: Stack(
           children: [
             ListView.builder(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 20,
-                bottom: 150 + getNavBarPadding(context),
+              padding: const EdgeInsets.only(
+                top: 20,
+                bottom: 150,
                 left: 15,
                 right: 30,
               ),
               itemCount: _files.length + 2,
               itemBuilder: (context, index) {
                 if (index == 0) {
-                  // title
                   if (widget.showAppBar) {
                     return Container();
                   }
@@ -294,13 +281,12 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                 }
 
                 if (index == 1) {
-                  // error card
                   final errorMessage = sendSession?.errorMessage;
                   if (errorMessage == null) {
                     return Container();
                   }
 
-                  return SelectableText(errorMessage, style: TextStyle(color: Theme.of(context).colorScheme.warning));
+                  return SelectableText(errorMessage, style: const TextStyle(color: Colors.orange));
                 }
 
                 final file = _files[index - 2];
@@ -476,12 +462,14 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                                       n: _selectedFiles.length,
                                     ),
                                   ),
+                                  const SizedBox(height: 5),
                                   Text(
                                     t.progressPage.total.size(
                                       curr: currBytes.asReadableFileSize,
                                       n: _totalBytes == double.maxFinite.toInt() ? '-' : _totalBytes.asReadableFileSize,
                                     ),
                                   ),
+                                  const SizedBox(height: 5),
                                   if (speedInBytes != null)
                                     Text(
                                       t.progressPage.total.speed(
@@ -494,12 +482,13 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                           ),
                           const SizedBox(height: 5),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               TextButton.icon(
-                                style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.onSurface),
                                 onPressed: () {
-                                  setState(() => _advanced = !_advanced);
+                                  setState(() {
+                                    _advanced = !_advanced;
+                                  });
                                 },
                                 icon: const Icon(Icons.info),
                                 label: Text(_advanced ? t.general.hide : t.general.advanced),
@@ -525,15 +514,6 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                 ),
               ),
             ),
-            checkPlatform([TargetPlatform.macOS])
-                ? Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 40,
-                    child: MoveWindow(),
-                  )
-                : SizedBox(),
           ],
         ),
       ),
@@ -549,7 +529,7 @@ extension on FileStatus {
       case FileStatus.skipped:
         return t.general.skipped;
       case FileStatus.sending:
-        return ''; // progress bar will be showed here
+        return '';
       case FileStatus.failed:
         return t.general.error;
       case FileStatus.finished:
@@ -566,7 +546,7 @@ extension on FileStatus {
       case FileStatus.sending:
         return Theme.of(context).colorScheme.primary;
       case FileStatus.failed:
-        return Theme.of(context).colorScheme.warning;
+        return Colors.orange;
       case FileStatus.finished:
         return Theme.of(context).colorScheme.primary;
     }

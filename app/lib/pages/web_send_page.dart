@@ -7,13 +7,12 @@ import 'package:localsend_app/model/cross_file.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/ui/snackbar.dart';
-import 'package:localsend_app/widget/custom_basic_appbar.dart';
 import 'package:localsend_app/widget/dialogs/pin_dialog.dart';
 import 'package:localsend_app/widget/dialogs/qr_dialog.dart';
 import 'package:localsend_app/widget/dialogs/zoom_dialog.dart';
-import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
@@ -76,13 +75,14 @@ class _WebSendPageState extends State<WebSendPage> with Refena {
     }
   }
 
-  /// Web share uses unencrypted http, so we need to revert to the previous state.
   Future<void> _revertServerState() async {
     await ref.notifier(serverProvider).restartServerFromSettings();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       onPopInvokedWithResult: (_, __) async {
         if (_stateEnum != _ServerState.running) {
@@ -102,259 +102,439 @@ class _WebSendPageState extends State<WebSendPage> with Refena {
       },
       canPop: false,
       child: Scaffold(
-        appBar: basicLocalSendAppbar(t.webSharePage.title),
-        body: Builder(
-          builder: (context) {
-            if (_stateEnum != _ServerState.running) {
-              return Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (_stateEnum == _ServerState.initializing || _stateEnum == _ServerState.stopping) ...[
-                    const CircularProgressIndicator(),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Text(
-                        _stateEnum == _ServerState.initializing ? t.webSharePage.loading : t.webSharePage.stopping,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                  ] else if (_initializedError != null) ...[
-                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Text(t.webSharePage.error, style: Theme.of(context).textTheme.titleLarge),
-                    ),
-                    const SizedBox(height: 10),
-                    Center(
-                      child: SelectableText(_initializedError!, style: Theme.of(context).textTheme.bodyMedium),
-                    ),
-                  ],
-                ],
-              );
-            }
-
-            final serverState = context.watch(serverProvider)!;
-            final webSendState = serverState.webSendState!;
-            final networkState = context.watch(localIpProvider);
-
-            return ResponsiveListView(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(32, MediaQuery.of(context).padding.top + 16, 32, 16),
+            child: Column(
               children: [
-                Text(t.webSharePage.openLink(n: networkState.localIps.length), style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 10),
-                Card(
-                  color: Theme.of(context).colorScheme.secondaryContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...networkState.localIps.map((ip) {
-                          final url = '${_encrypted ? 'https' : 'http'}://$ip:${serverState.port}';
-                          final urlWithPin = switch (webSendState.pin) {
-                            String() => '$url/?pin=${Uri.encodeQueryComponent(webSendState.pin!)}',
-                            null => url,
-                          };
-                          return Padding(
-                            padding: const EdgeInsets.all(5),
-                            child: Row(
-                              children: [
+                        Text(
+                          'Web Share',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : LinkDropColors.zinc900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Share files via web link',
+                          style: TextStyle(
+                            color: LinkDropColors.zinc500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      onPressed: () async {
+                        if (_stateEnum == _ServerState.running) {
+                          setState(() {
+                            _stateEnum = _ServerState.stopping;
+                          });
+                          await sleepAsync(250);
+                          await _revertServerState();
+                          await sleepAsync(250);
+                        }
+                        if (context.mounted) {
+                          context.pop();
+                        }
+                      },
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: isDark ? Colors.white : LinkDropColors.zinc900,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: Builder(
+                    builder: (context) {
+                      if (_stateEnum != _ServerState.running) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_stateEnum == _ServerState.initializing || _stateEnum == _ServerState.stopping) ...[
+                                CircularProgressIndicator(
+                                  color: LinkDropColors.teal500,
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  _stateEnum == _ServerState.initializing ? 'Initializing...' : 'Stopping...',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                  ),
+                                ),
+                              ] else if (_initializedError != null) ...[
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 48,
+                                  color: Colors.red,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Error',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
                                 SelectableText(
-                                  url,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                                const SizedBox(width: 5),
-                                InkWell(
-                                  onTap: () async {
-                                    await Clipboard.setData(ClipboardData(text: url));
-                                    if (context.mounted && checkPlatformIsDesktop()) {
-                                      context.showSnackBar(t.general.copiedToClipboard);
-                                    }
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    child: Icon(Icons.content_copy, size: 16),
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () async {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (_) => QrDialog(
-                                        data: urlWithPin,
-                                        label: url,
-                                        listenIncomingWebSendRequests: true,
-                                        pin: webSendState.pin,
-                                      ),
-                                    );
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    child: Icon(Icons.qr_code, size: 16),
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () async {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (_) => ZoomDialog(
-                                        label: url,
-                                        pin: webSendState.pin,
-                                        listenIncomingWebSendRequests: true,
-                                      ),
-                                    );
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    child: Icon(Icons.tv, size: 16),
+                                  _initializedError!,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: LinkDropColors.zinc500,
                                   ),
                                 ),
                               ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(t.webSharePage.requests, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 10),
-                if (webSendState.sessions.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 30),
-                    child: Text(t.webSharePage.noRequests),
-                  ),
-                ...webSendState.sessions.entries.map((entry) {
-                  final session = entry.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Row(
+                            ],
+                          ),
+                        );
+                      }
+
+                      final serverState = context.watch(serverProvider)!;
+                      final webSendState = serverState.webSendState!;
+                      final networkState = context.watch(localIpProvider);
+
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    session.deviceInfo,
-                                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                      color: session.responseHandler != null ? Theme.of(context).colorScheme.warning : null,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(session.ip, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.grey)),
-                                ],
+                            Text(
+                              'Open link on other device',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : LinkDropColors.zinc900,
                               ),
                             ),
-                            if (session.responseHandler != null) ...[
-                              TextButton(
-                                onPressed: () {
-                                  ref.notifier(serverProvider).declineWebSendRequest(session.sessionId);
-                                },
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                            const SizedBox(height: 16),
+                            ...networkState.localIps.map((ip) {
+                              final url = '${_encrypted ? 'https' : 'http'}://$ip:${serverState.port}';
+                              final urlWithPin = switch (webSendState.pin) {
+                                String() => '$url/?pin=${Uri.encodeQueryComponent(webSendState.pin!)}',
+                                null => url,
+                              };
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isDark ? LinkDropColors.zinc700 : LinkDropColors.zinc200,
+                                  ),
                                 ),
-                                child: const Icon(Icons.close),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  ref.notifier(serverProvider).acceptWebSendRequest(session.sessionId);
-                                },
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: SelectableText(
+                                        url,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _ActionButton(
+                                      icon: Icons.content_copy_rounded,
+                                      onTap: () async {
+                                        await Clipboard.setData(ClipboardData(text: url));
+                                        if (context.mounted && checkPlatformIsDesktop()) {
+                                          context.showSnackBar(t.general.copiedToClipboard);
+                                        }
+                                      },
+                                      isDark: isDark,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _ActionButton(
+                                      icon: Icons.qr_code_rounded,
+                                      onTap: () async {
+                                        await showDialog(
+                                          context: context,
+                                          builder: (_) => QrDialog(
+                                            data: urlWithPin,
+                                            label: url,
+                                            listenIncomingWebSendRequests: true,
+                                            pin: webSendState.pin,
+                                          ),
+                                        );
+                                      },
+                                      isDark: isDark,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _ActionButton(
+                                      icon: Icons.tv_rounded,
+                                      onTap: () async {
+                                        await showDialog(
+                                          context: context,
+                                          builder: (_) => ZoomDialog(
+                                            label: url,
+                                            pin: webSendState.pin,
+                                            listenIncomingWebSendRequests: true,
+                                          ),
+                                        );
+                                      },
+                                      isDark: isDark,
+                                    ),
+                                  ],
                                 ),
-                                child: const Icon(Icons.check_circle),
+                              );
+                            }),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Requests',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : LinkDropColors.zinc900,
                               ),
-                            ] else
+                            ),
+                            const SizedBox(height: 16),
+                            if (webSendState.sessions.isEmpty)
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                padding: const EdgeInsets.only(bottom: 30),
                                 child: Text(
-                                  t.general.accepted,
-                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                  'No requests yet',
+                                  style: TextStyle(
+                                    color: LinkDropColors.zinc500,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ),
+                            ...webSendState.sessions.entries.map((entry) {
+                              final session = entry.value;
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isDark ? LinkDropColors.zinc700 : LinkDropColors.zinc200,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            session.deviceInfo,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                              color: session.responseHandler != null
+                                                  ? LinkDropColors.orange500
+                                                  : (isDark ? Colors.white : LinkDropColors.zinc900),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            session.ip,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: LinkDropColors.zinc500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (session.responseHandler != null) ...[
+                                      IconButton(
+                                        onPressed: () {
+                                          ref.notifier(serverProvider).declineWebSendRequest(session.sessionId);
+                                        },
+                                        icon: Icon(
+                                          Icons.close_rounded,
+                                          color: LinkDropColors.red500,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          ref.notifier(serverProvider).acceptWebSendRequest(session.sessionId);
+                                        },
+                                        icon: Icon(
+                                          Icons.check_circle_rounded,
+                                          color: LinkDropColors.teal500,
+                                        ),
+                                      ),
+                                    ] else
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                                        child: Text(
+                                          'Accepted',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: LinkDropColors.teal500,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            }),
+                            const SizedBox(height: 24),
+                            _SettingItem(
+                              label: 'Encryption',
+                              isDark: isDark,
+                              child: Checkbox(
+                                value: _encrypted,
+                                activeColor: LinkDropColors.teal500,
+                                onChanged: (value) {
+                                  _init(encrypted: value == true);
+                                },
+                              ),
+                            ),
+                            if (_encrypted)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16, top: 8),
+                                child: Text(
+                                  t.webSharePage.encryptionHint,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: LinkDropColors.orange500,
+                                  ),
+                                ),
+                              ),
+                            _SettingItem(
+                              label: 'Auto Accept',
+                              isDark: isDark,
+                              child: Checkbox(
+                                value: webSendState.autoAccept,
+                                activeColor: LinkDropColors.teal500,
+                                onChanged: (value) {
+                                  ref.notifier(serverProvider).setWebSendAutoAccept(value == true);
+                                },
+                              ),
+                            ),
+                            _SettingItem(
+                              label: 'Require PIN',
+                              isDark: isDark,
+                              child: Checkbox(
+                                value: webSendState.pin != null,
+                                activeColor: LinkDropColors.teal500,
+                                onChanged: (value) async {
+                                  final currentPIN = webSendState.pin;
+                                  if (currentPIN != null) {
+                                    ref.notifier(serverProvider).setWebSendPin(null);
+                                  } else {
+                                    final String? newPin = await showDialog<String>(
+                                      context: context,
+                                      builder: (_) => const PinDialog(
+                                        obscureText: false,
+                                        generateRandom: true,
+                                      ),
+                                    );
+
+                                    if (newPin != null && newPin.isNotEmpty) {
+                                      ref.notifier(serverProvider).setWebSendPin(newPin);
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                            if (webSendState.pin != null) ...[
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16, top: 8),
+                                child: Text(
+                                  t.webSharePage.pinHint(pin: webSendState.pin!),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: LinkDropColors.orange500,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                      ),
-                    ),
-                  );
-                }),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(t.webSharePage.encryption, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(width: 10),
-                    Checkbox(
-                      value: _encrypted,
-                      onChanged: (value) {
-                        _init(encrypted: value == true);
-                      },
-                    ),
-                  ],
-                ),
-                if (_encrypted)
-                  Text(
-                    t.webSharePage.encryptionHint,
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.warning),
+                      );
+                    },
                   ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(t.webSharePage.autoAccept, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(width: 10),
-                    Checkbox(
-                      value: webSendState.autoAccept,
-                      onChanged: (value) {
-                        ref.notifier(serverProvider).setWebSendAutoAccept(value == true);
-                      },
-                    ),
-                  ],
                 ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(t.webSharePage.requirePin, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(width: 10),
-                    Checkbox(
-                      value: webSendState.pin != null,
-                      onChanged: (value) async {
-                        final currentPIN = webSendState.pin;
-                        if (currentPIN != null) {
-                          ref.notifier(serverProvider).setWebSendPin(null);
-                        } else {
-                          final String? newPin = await showDialog<String>(
-                            context: context,
-                            builder: (_) => const PinDialog(
-                              obscureText: false,
-                              generateRandom: true,
-                            ),
-                          );
-
-                          if (newPin != null && newPin.isNotEmpty) {
-                            ref.notifier(serverProvider).setWebSendPin(newPin);
-                          }
-                        }
-                      },
-                    ),
-                  ],
-                ),
-                if (webSendState.pin != null) ...[
-                  Text(
-                    t.webSharePage.pinHint(pin: webSendState.pin!),
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.warning),
-                  ),
-                ],
               ],
-            );
-          },
+            ),
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool isDark;
+
+  const _ActionButton({
+    required this.icon,
+    required this.onTap,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isDark ? LinkDropColors.zinc700 : LinkDropColors.zinc200,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: isDark ? Colors.white : LinkDropColors.zinc700,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingItem extends StatelessWidget {
+  final String label;
+  final Widget child;
+  final bool isDark;
+
+  const _SettingItem({
+    required this.label,
+    required this.child,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : LinkDropColors.zinc900,
+            ),
+          ),
+          const SizedBox(width: 12),
+          child,
+        ],
       ),
     );
   }

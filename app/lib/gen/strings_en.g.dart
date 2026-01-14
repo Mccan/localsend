@@ -46,8 +46,8 @@ class Translations implements BaseTranslations<AppLocale, Translations> {
   /// en: 'English'
   String get locale => 'English';
 
-  /// en: 'LocalSend'
-  String get appName => 'LocalSend';
+  /// en: 'LinkDrop'
+  String get appName => 'LinkDrop';
 
   late final TranslationsGeneralEn general = TranslationsGeneralEn.internal(_root);
   late final TranslationsReceiveTabEn receiveTab = TranslationsReceiveTabEn.internal(_root);
@@ -235,6 +235,9 @@ class TranslationsSendTabEn {
   /// en: 'Send'
   String get title => 'Send';
 
+  /// en: '1. Search devices; 2. Select files; 3. Select device to send'
+  String get subtitle => '1. Search devices; 2. Select files; 3. Select device to send';
+
   late final TranslationsSendTabSelectionEn selection = TranslationsSendTabSelectionEn.internal(_root);
   late final TranslationsSendTabPickerEn picker = TranslationsSendTabPickerEn.internal(_root);
 
@@ -266,6 +269,18 @@ class TranslationsSendTabEn {
 
   /// en: 'Place items to share.'
   String get placeItems => 'Place items to share.';
+
+  /// en: 'Add more'
+  String get addMore => 'Add more';
+
+  /// en: 'Edit list'
+  String get editList => 'Edit list';
+
+  /// en: 'Scanning for nearby devices...'
+  String get scanning => 'Scanning for nearby devices...';
+
+  /// en: 'Select files to send'
+  String get selectFiles => 'Select files to send';
 }
 
 // Path: settingsTab
@@ -278,6 +293,9 @@ class TranslationsSettingsTabEn {
 
   /// en: 'Settings'
   String get title => 'Settings';
+
+  /// en: 'Manage your preferences'
+  String get subtitle => 'Manage your preferences';
 
   late final TranslationsSettingsTabGeneralEn general = TranslationsSettingsTabGeneralEn.internal(_root);
   late final TranslationsSettingsTabReceiveEn receive = TranslationsSettingsTabReceiveEn.internal(_root);
@@ -404,8 +422,11 @@ class TranslationsReceivePageEn {
   // Translations
 
   /// en: '(one) {wants to send you a file} (other) {wants to send you {n} files}'
-  String subTitle({required num n}) =>
-      (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'wants to send you a file', other: 'wants to send you ${n} files');
+  String subTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(
+    n,
+    one: 'wants to send you a file',
+    other: 'wants to send you ${n} files',
+  );
 
   /// en: 'sent you a message:'
   String get subTitleMessage => 'sent you a message:';

@@ -24,6 +24,7 @@ import 'package:localsend_app/pages/home_page.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/receive_page.dart';
+import 'package:localsend_app/pages/receive_session_page.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
@@ -339,7 +340,7 @@ class ReceiveController {
       });
 
       // ignore: use_build_context_synchronously, unawaited_futures
-      Routerino.context.push(() => ReceivePage(receiveProvider));
+      Routerino.context.push(() => ReceiveSessionPage(receiveProvider));
 
       // Delayed response (waiting for user's decision)
       selection = await streamController.stream.first;
@@ -612,7 +613,7 @@ class ReceiveController {
           _logger.info('Closing session');
 
           // ignore: use_build_context_synchronously, discarded_futures
-          Routerino.context.pushRootImmediately(() => const HomePage(initialTab: HomeTab.receive, appStart: false));
+          Routerino.context.pushRootImmediately(() => const LinkDropHomePage(initialTab: HomeTab.receive, appStart: false));
 
           // open the dialog to open file instantly
           if (filePath != null && filePath.isNotEmpty) {
