@@ -21,6 +21,7 @@
     "files": "文件",
     "finished": "已完成",
     "hide": "隐藏",
+    "inactive": "未激活",
     "off": "关",
     "offline": "离线",
     "on": "开",
@@ -66,6 +67,7 @@
       "files": "文件：{files}",
       "size": "大小：{size}"
     },
+    "selectedFiles": "已选文件",
     "picker": {
       "file": "文件",
       "folder": "文件夹",
@@ -113,6 +115,9 @@
       "languageOptions": {
         "system": "跟随系统"
       },
+      "loginStatus": "登录状态",
+      "profile": "个人中心",
+      "invite": "邀请码",
       "saveWindowPlacement": "退出时保存窗口位置",
       "saveWindowPlacementWindows": "退出时保存窗口位置",
       "minimizeToTray": "关闭时最小化到系统托盘",

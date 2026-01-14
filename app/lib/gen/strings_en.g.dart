@@ -139,6 +139,9 @@ class TranslationsGeneralEn {
   /// en: 'Hide'
   String get hide => 'Hide';
 
+  /// en: 'Inactive'
+  String get inactive => 'Inactive';
+
   /// en: 'Off'
   String get off => 'Off';
 
@@ -239,6 +242,10 @@ class TranslationsSendTabEn {
   String get subtitle => '1. Search devices; 2. Select files; 3. Select device to send';
 
   late final TranslationsSendTabSelectionEn selection = TranslationsSendTabSelectionEn.internal(_root);
+
+  /// en: 'Selected files'
+  String get selectedFiles => 'Selected files';
+
   late final TranslationsSendTabPickerEn picker = TranslationsSendTabPickerEn.internal(_root);
 
   /// en: 'You can also use the "Share" feature of your mobile device to select files more easily.'
@@ -1022,6 +1029,15 @@ class TranslationsSettingsTabGeneralEn {
   String get language => 'Language';
 
   late final TranslationsSettingsTabGeneralLanguageOptionsEn languageOptions = TranslationsSettingsTabGeneralLanguageOptionsEn.internal(_root);
+
+  /// en: 'Login Status'
+  String get loginStatus => 'Login Status';
+
+  /// en: 'Profile'
+  String get profile => 'Profile';
+
+  /// en: 'Invite'
+  String get invite => 'Invite';
 
   /// en: 'Save window position after quit'
   String get saveWindowPlacement => 'Save window position after quit';

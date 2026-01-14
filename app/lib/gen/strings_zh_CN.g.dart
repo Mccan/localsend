@@ -137,6 +137,8 @@ class _TranslationsGeneralZhCn extends TranslationsGeneralEn {
   @override
   String get hide => '隐藏';
   @override
+  String get inactive => '未激活';
+  @override
   String get off => '关';
   @override
   String get offline => '离线';
@@ -212,6 +214,8 @@ class _TranslationsSendTabZhCn extends TranslationsSendTabEn {
   String get subtitle => '1、搜设备；2、选文件；3、选设备即可发送';
   @override
   late final _TranslationsSendTabSelectionZhCn selection = _TranslationsSendTabSelectionZhCn._(_root);
+  @override
+  String get selectedFiles => '已选文件';
   @override
   late final _TranslationsSendTabPickerZhCn picker = _TranslationsSendTabPickerZhCn._(_root);
   @override
@@ -886,6 +890,12 @@ class _TranslationsSettingsTabGeneralZhCn extends TranslationsSettingsTabGeneral
   String get language => '语言';
   @override
   late final _TranslationsSettingsTabGeneralLanguageOptionsZhCn languageOptions = _TranslationsSettingsTabGeneralLanguageOptionsZhCn._(_root);
+  @override
+  String get loginStatus => '登录状态';
+  @override
+  String get profile => '个人中心';
+  @override
+  String get invite => '邀请码';
   @override
   String get saveWindowPlacement => '退出时保存窗口位置';
   @override

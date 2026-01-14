@@ -1,4 +1,6 @@
+import 'dart:math' as math;
 import 'dart:ui';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:screen_retriever/screen_retriever.dart';
@@ -18,8 +20,13 @@ final windowDimensionProvider = Provider<WindowDimensionsController>((ref) {
   return WindowDimensionsController(ref.read(persistenceProvider));
 });
 
-const Size _minimalSize = Size(400, 500);
-const Size _defaultSize = Size(900, 600);
+// 旧值(400x500)在 Windows 上非常容易触发布局溢出；这里提高下限，
+// 同时在 bitsdojo_window 上设置 minSize，确保“拖到很小还能继续拖”的问题被彻底解决。
+// 最小尺寸策略：
+// - 宽度允许更小，以便触发移动端/窄屏布局（例如侧边栏下沉）。
+// - 高度提高，避免桌面端在极矮窗口下出现大量垂直溢出。
+const Size _minimalSize = Size(560, 800);
+const Size _defaultSize = Size(900, 800);
 
 class WindowDimensionsController {
   final PersistenceService _service;
@@ -30,12 +37,22 @@ class WindowDimensionsController {
   Future<void> initDimensionsConfiguration() async {
     await WindowManager.instance.setMinimumSize(_minimalSize);
 
+    // 在部分桌面平台/窗口实现下，仅设置 window_manager 的最小尺寸并不足以限制用户继续缩小窗口。
+    // bitsdojo_window 的 minSize 需要在 window ready 之后设置。
+    doWhenWindowReady(() {
+      appWindow.minSize = _minimalSize;
+    });
+
     // load saved Window placement and preferences
     final useSavedPlacement = _service.getSaveWindowPlacement();
     final persistedDimensions = _service.getWindowLastDimensions();
 
     if (useSavedPlacement && persistedDimensions != null && await isInScreenBounds(persistedDimensions.position, persistedDimensions.size)) {
-      await WindowManager.instance.setSize(persistedDimensions.size);
+      final safeSize = Size(
+        math.max(_minimalSize.width, persistedDimensions.size.width),
+        math.max(_minimalSize.height, persistedDimensions.size.height),
+      );
+      await WindowManager.instance.setSize(safeSize);
       await WindowManager.instance.setPosition(persistedDimensions.position);
     } else {
       final primaryDisplay = await ScreenRetriever.instance.getPrimaryDisplay();

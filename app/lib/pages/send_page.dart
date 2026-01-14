@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
@@ -276,7 +277,7 @@ class _SendPageState extends State<SendPage> with Refena {
     final totalSize = vm.selectedFiles.fold<int>(0, (prev, curr) => prev + curr.size);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -285,7 +286,7 @@ class _SendPageState extends State<SendPage> with Refena {
             children: [
               Expanded(
                 child: Text(
-                  'Selected files',
+                  t.sendTab.selectedFiles,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -309,12 +310,12 @@ class _SendPageState extends State<SendPage> with Refena {
             ],
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
           // 文件统计信息
           Wrap(
             spacing: 12,
-            runSpacing: 6,
+            runSpacing: 8,
             children: [
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -355,29 +356,74 @@ class _SendPageState extends State<SendPage> with Refena {
             ],
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
-          // 文件缩略图列表（横向滚动）
-          SizedBox(
-            height: 70,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: vm.selectedFiles.length,
-              itemBuilder: (context, index) {
-                final file = vm.selectedFiles[index];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: _FileThumbnailCard(
-                    file: file,
-                    isDark: isDark,
-                    onTap: () => _removeFile(context, index),
+          // 文件预览区（随可用空间自适应）
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // 很矮时用横向滚动，避免网格过挤；高度足够则用网格，随空间增减显示更多行/列。
+                final useHorizontalList = constraints.maxHeight < 120;
+
+                if (useHorizontalList) {
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: vm.selectedFiles.length,
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (context, index) {
+                      final file = vm.selectedFiles[index];
+                      return Padding(
+                        padding: EdgeInsets.only(right: index == vm.selectedFiles.length - 1 ? 0 : 12),
+                        child: SizedBox(
+                          width: 84,
+                          child: _FileThumbnailCard(
+                            file: file,
+                            isDark: isDark,
+                            fileNameFontSize: 10,
+                            onTap: () => _removeFile(context, index),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+
+                // 垂直响应式：文件较少时让卡片高度随剩余空间伸缩填充；文件较多时固定高度并滚动。
+                final minTileWidth = constraints.maxWidth >= 560 ? 132.0 : 116.0;
+                final estimatedColumns = (constraints.maxWidth / (minTileWidth + 12)).floor();
+                final columns = math.max(2, estimatedColumns);
+                final rows = (vm.selectedFiles.length / columns).ceil();
+
+                final isDense = vm.selectedFiles.length > columns * 3;
+                final targetTileHeight = isDense
+                    ? 112.0
+                    : ((constraints.maxHeight - 12 * math.max(0, rows - 1)) / math.max(1, rows)).clamp(96.0, 156.0);
+
+                return GridView.builder(
+                  padding: EdgeInsets.zero,
+                  physics: isDense ? null : const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    mainAxisExtent: targetTileHeight,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
                   ),
+                  itemCount: vm.selectedFiles.length,
+                  itemBuilder: (context, index) {
+                    final file = vm.selectedFiles[index];
+                    return _FileThumbnailCard(
+                      file: file,
+                      isDark: isDark,
+                      fileNameFontSize: 11,
+                      onTap: () => _removeFile(context, index),
+                    );
+                  },
                 );
               },
             ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
           // 操作按钮
           Row(
@@ -619,11 +665,13 @@ class _FileThumbnailCard extends StatelessWidget {
   final CrossFile file;
   final bool isDark;
   final VoidCallback onTap;
+  final double fileNameFontSize;
 
   const _FileThumbnailCard({
     required this.file,
     required this.isDark,
     required this.onTap,
+    this.fileNameFontSize = 10,
   });
 
   @override
@@ -632,8 +680,6 @@ class _FileThumbnailCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 60,
-        height: 70,
         decoration: BoxDecoration(
           color: isDark ? LinkDropColors.zinc800 : Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -646,19 +692,19 @@ class _FileThumbnailCard extends StatelessWidget {
             // 缩略图区域
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(8),
                 child: SmartFileThumbnail.fromCrossFile(file),
               ),
             ),
             // 文件名
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
               child: Text(
                 file.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 9,
+                  fontSize: fileNameFontSize,
                   color: isDark ? Colors.white70 : LinkDropColors.zinc700,
                 ),
               ),

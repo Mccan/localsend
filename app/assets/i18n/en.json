@@ -21,6 +21,7 @@
     "files": "Files",
     "finished": "Finished",
     "hide": "Hide",
+    "inactive": "Inactive",
     "off": "Off",
     "offline": "Offline",
     "on": "On",
@@ -66,6 +67,7 @@
       "files": "Files: {files}",
       "size": "Size: {size}"
     },
+    "selectedFiles": "Selected files",
     "picker": {
       "file": "File",
       "folder": "Folder",
@@ -113,6 +115,9 @@
       "languageOptions": {
         "system": "System"
       },
+      "loginStatus": "Login Status",
+      "profile": "Profile",
+      "invite": "Invite",
       "saveWindowPlacement": "Save window position after quit",
       "saveWindowPlacementWindows": "Save window position after exit",
       "minimizeToTray": "Minimize to the System Tray/Menu Bar when closing",

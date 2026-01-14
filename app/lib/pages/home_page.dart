@@ -104,6 +104,10 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                         onDestinationSelected: (index) => vm.changeTab(HomeTab.values[index]),
                         extended: _isSidebarExpanded,
                         backgroundColor: Theme.of(context).cardColorWithElevation,
+                        indicatorColor: Theme.of(context).colorScheme.primary,
+                        indicatorShape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         selectedLabelTextStyle: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -115,6 +119,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                               color: Colors.transparent,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(8),
+                                hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                                 onTap: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -124,16 +129,16 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+                                          color: Colors.black,
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: AnimatedRotation(
                                           turns: _isSidebarExpanded ? 0 : 0.5,
                                           duration: const Duration(milliseconds: 200),
-                                          child: Icon(
+                                          child: const Icon(
                                             Icons.send,
                                             size: 24,
-                                            color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),
@@ -155,14 +160,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                         destinations: HomeTab.values.map((tab) {
                           return NavigationRailDestination(
                             icon: Icon(tab.icon),
-                            selectedIcon: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(tab.icon, color: Colors.white, size: 24),
-                            ),
+                            selectedIcon: Icon(tab.icon, color: Colors.white),
                             label: Text(tab.label),
                           );
                         }).toList(),
@@ -180,57 +178,54 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                               Material(
                                 color: Colors.transparent,
                                 child: InkWell(
+                                  hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                                   onTap: () async {
-                                    await ref.notifier(settingsProvider).setTheme(
-                                          settings.theme == ThemeMode.light
-                                              ? ThemeMode.dark
-                                              : ThemeMode.light,
+                                    await ref
+                                        .notifier(settingsProvider)
+                                        .setTheme(
+                                          settings.theme == ThemeMode.light ? ThemeMode.dark : ThemeMode.light,
                                         );
                                   },
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
                                     child: Row(
-                                      mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.start,
                                       children: [
                                         Icon(
-                                          settings.theme == ThemeMode.light
-                                              ? Icons.dark_mode
-                                              : Icons.light_mode,
+                                          settings.theme == ThemeMode.light ? Icons.light_mode : Icons.dark_mode,
                                           size: 24,
                                         ),
                                         if (_isSidebarExpanded) ...[
-                                          const SizedBox(width: 16),
-                                          Text(t.settingsTab.general.brightness, style: const TextStyle(fontSize: 14)),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            settings.theme == ThemeMode.light ? '日间模式' : '夜间模式',
+                                            style: const TextStyle(fontSize: 14),
+                                          ),
                                         ],
                                       ],
                                     ),
                                   ),
                                 ),
                               ),
-                              Theme(
-                                data: Theme.of(context).copyWith(
-                                  popupMenuTheme: PopupMenuThemeData(
-                                    color: isDark ? LinkDropColors.zinc900 : Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200)),
-                                  ),
-                                ),
+                              MouseRegion(
+                                cursor: SystemMouseCursors.click,
                                 child: PopupMenuButton<String>(
-                                  offset: const Offset(20, -120),
+                                  offset: const Offset(40, -120),
                                   tooltip: '',
                                   itemBuilder: (context) => [
-                                    const PopupMenuItem(
+                                    PopupMenuItem(
                                       enabled: false,
-                                      child: Text('Login Status: Guest'),
+                                      child: Text(t.settingsTab.general.loginStatus + ': Guest'),
                                     ),
-                                    const PopupMenuItem(
+                                    PopupMenuItem(
                                       enabled: false,
-                                      child: Text('VIP: Inactive'),
+                                      child: Text('VIP: ' + t.general.inactive),
                                     ),
                                     PopupMenuItem(
                                       enabled: false,
                                       child: Row(
                                         children: [
-                                          const Text('Invite: 888888'),
+                                          Text(t.settingsTab.general.invite + ': 888888'),
                                           const SizedBox(width: 8),
                                           Icon(Icons.copy, size: 16, color: Theme.of(context).colorScheme.primary),
                                         ],
@@ -240,7 +235,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
                                     child: Row(
-                                      mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.start,
                                       children: [
                                         const Icon(
                                           Icons.person,
@@ -248,7 +243,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                         ),
                                         if (_isSidebarExpanded) ...[
                                           const SizedBox(width: 16),
-                                          const Text('Profile', style: TextStyle(fontSize: 14)),
+                                          Text(t.settingsTab.general.profile, style: const TextStyle(fontSize: 14)),
                                         ],
                                       ],
                                     ),
