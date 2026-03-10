@@ -46,6 +46,7 @@ class SettingsService extends PureNotifier<SettingsState> {
   SettingsState init() => SettingsState(
     showToken: _persistence.getShowToken(),
     alias: _persistence.getAlias(),
+    isAliasModified: _persistence.isAliasModified(),
     theme: _persistence.getTheme(),
     colorMode: _persistence.getColorMode(),
     locale: _persistence.getLocale(),
@@ -70,12 +71,16 @@ class SettingsService extends PureNotifier<SettingsState> {
     shareViaLinkAutoAccept: _persistence.getShareViaLinkAutoAccept(),
     discoveryTimeout: _persistence.getDiscoveryTimeout(),
     advancedSettings: _persistence.getAdvancedSettingsEnabled(),
+    historyViewMode: _persistence.isHistoryViewMode(),
+    selectionViewMode: _persistence.isSelectionViewMode(),
+    languageViewMode: _persistence.isLanguageViewMode(),
   );
 
   Future<void> setAlias(String alias) async {
     await _persistence.setAlias(alias);
     state = state.copyWith(
       alias: alias,
+      isAliasModified: true,
     );
   }
 
@@ -245,6 +250,27 @@ class SettingsService extends PureNotifier<SettingsState> {
 
     state = state.copyWith(
       shareViaLinkAutoAccept: shareViaLinkAutoAccept,
+    );
+  }
+
+  Future<void> setHistoryViewMode(bool isGrid) async {
+    await _persistence.setHistoryViewMode(isGrid);
+    state = state.copyWith(
+      historyViewMode: isGrid,
+    );
+  }
+
+  Future<void> setSelectionViewMode(bool isGrid) async {
+    await _persistence.setSelectionViewMode(isGrid);
+    state = state.copyWith(
+      selectionViewMode: isGrid,
+    );
+  }
+
+  Future<void> setLanguageViewMode(bool isGrid) async {
+    await _persistence.setLanguageViewMode(isGrid);
+    state = state.copyWith(
+      languageViewMode: isGrid,
     );
   }
 }

@@ -189,7 +189,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           settings.theme == ThemeMode.light ? Icons.light_mode : Icons.dark_mode,
@@ -235,7 +235,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
                                       children: [
                                         const Icon(
                                           Icons.person,

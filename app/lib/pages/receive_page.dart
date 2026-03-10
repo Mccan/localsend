@@ -9,6 +9,7 @@ import 'package:localsend_app/pages/tabs/receive_tab_vm.dart';
 import 'package:localsend_app/pages/widget/pulse_ripple.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
+import 'package:localsend_app/util/ip_helper.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
@@ -28,6 +29,13 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
   int _dotCount = 1;
   Timer? _timer;
   Timer? _resetTimer;
+
+  String _formatDisplayName(String alias, bool isAliasModified, String? ip) {
+    if (isAliasModified || ip == null) {
+      return alias;
+    }
+    return '${ip.visualId}（我）';
+  }
 
   @override
   void initState() {
@@ -145,7 +153,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                         children: [
                           _InfoItem(
                             label: t.receiveTab.infoBox.alias,
-                            value: settings.alias,
+                            value: _formatDisplayName(settings.alias, settings.isAliasModified, vm.localIps.firstOrNull),
                             onTap: () => _showAliasDialog(context, settings, settingsService),
                             isDark: isDark,
                           ),
@@ -233,7 +241,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                           Icon(Icons.wifi, size: 16, color: LinkDropColors.zinc500),
                           const SizedBox(width: 8),
                           Text(
-                            settings.alias,
+                            _formatDisplayName(settings.alias, settings.isAliasModified, vm.localIps.firstOrNull),
                             style: const TextStyle(
                               fontSize: 16,
                               color: LinkDropColors.zinc500,

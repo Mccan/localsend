@@ -38,6 +38,9 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        // Include Rust plugin outputs explicitly to avoid missing .so in final APK.
+        debug.jniLibs.srcDirs += ['../../build/rust_lib_localsend_app/jniLibs/debug']
+        release.jniLibs.srcDirs += ['../../build/rust_lib_localsend_app/jniLibs/release']
     }
 
     defaultConfig {

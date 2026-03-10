@@ -7,7 +7,7 @@ function Resolve-Symlinks {
     )
 
     [string] $separator = '/'
-    [string[]] $parts = $Path.Split($separator)
+    [string[]] $parts = ($Path.Replace('\\', '/')).Split($separator)
 
     [string] $realPath = ''
     foreach ($part in $parts) {
@@ -15,9 +15,16 @@ function Resolve-Symlinks {
             $realPath += $separator
         }
         $realPath += $part
-        $item = Get-Item $realPath
-        if ($item.Target) {
-            $realPath = $item.Target.Replace('\', '/')
+        # Some systems expose junction targets with unexpected characters.
+        # Keep resolving where possible, but never fail the build for this helper.
+        try {
+            $item = Get-Item -LiteralPath $realPath -ErrorAction Stop
+            if ($item.LinkTarget) {
+                $realPath = $item.LinkTarget.Replace('\\', '/')
+            }
+        }
+        catch {
+            continue
         }
     }
     $realPath

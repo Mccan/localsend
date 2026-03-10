@@ -67,6 +67,7 @@ const _saveWindowPlacement = 'ls_save_window_placement';
 // Settings
 const _showToken = 'ls_show_token';
 const _aliasKey = 'ls_alias';
+const _aliasModifiedKey = 'ls_alias_modified';
 const _themeKey = 'ls_theme'; // now called brightness
 const _colorKey = 'ls_color';
 const _localeKey = 'ls_locale';
@@ -90,6 +91,9 @@ const _deviceType = 'ls_device_type';
 const _deviceModel = 'ls_device_model';
 const _shareViaLinkAutoAccept = 'ls_share_via_link_auto_accept';
 const _advancedSettingsKey = 'ls_advanced_settings';
+const _historyViewModeKey = 'ls_history_view_mode';
+const _selectionViewModeKey = 'ls_selection_view_mode';
+const _languageViewModeKey = 'ls_language_view_mode';
 
 final persistenceProvider = Provider<PersistenceService>((ref) {
   throw Exception('persistenceProvider not initialized');
@@ -163,6 +167,7 @@ class PersistenceService {
 
     if (prefs.getString(_aliasKey) == null) {
       await prefs.setString(_aliasKey, generateRandomAlias());
+      await prefs.setBool(_aliasModifiedKey, false);
     }
 
     if (prefs.getString(_securityContext) == null) {
@@ -275,8 +280,13 @@ class PersistenceService {
     return _prefs.getString(_aliasKey) ?? generateRandomAlias();
   }
 
+  bool isAliasModified() {
+    return _prefs.getBool(_aliasModifiedKey) ?? false;
+  }
+
   Future<void> setAlias(String alias) async {
     await _prefs.setString(_aliasKey, alias);
+    await _prefs.setBool(_aliasModifiedKey, true);
   }
 
   ThemeMode getTheme() {
@@ -407,8 +417,32 @@ class PersistenceService {
     return _prefs.getBool(_advancedSettingsKey) ?? false;
   }
 
+  bool isHistoryViewMode() {
+    return _prefs.getBool(_historyViewModeKey) ?? false;
+  }
+
+  bool isSelectionViewMode() {
+    return _prefs.getBool(_selectionViewModeKey) ?? false;
+  }
+
+  bool isLanguageViewMode() {
+    return _prefs.getBool(_languageViewModeKey) ?? false;
+  }
+
   Future<void> setAdvancedSettingsEnabled(bool isEnabled) async {
     await _prefs.setBool(_advancedSettingsKey, isEnabled);
+  }
+
+  Future<void> setHistoryViewMode(bool isGrid) async {
+    await _prefs.setBool(_historyViewModeKey, isGrid);
+  }
+
+  Future<void> setSelectionViewMode(bool isGrid) async {
+    await _prefs.setBool(_selectionViewModeKey, isGrid);
+  }
+
+  Future<void> setLanguageViewMode(bool isGrid) async {
+    await _prefs.setBool(_languageViewModeKey, isGrid);
   }
 
   bool isQuickSave() {

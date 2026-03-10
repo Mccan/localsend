@@ -1,6 +1,7 @@
 import 'package:common/model/device.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
+import 'package:localsend_app/util/ip_helper.dart';
 
 class DeviceNode extends StatelessWidget {
   final Device device;
@@ -15,6 +16,13 @@ class DeviceNode extends StatelessWidget {
     this.isFavorite = false,
     super.key,
   });
+
+  String _formatDisplayName(String? ip) {
+    if (ip == null) {
+      return '未知设备';
+    }
+    return '${ip.visualId}（别人）';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +90,7 @@ class DeviceNode extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        device.alias,
+                        _formatDisplayName(device.ip),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,

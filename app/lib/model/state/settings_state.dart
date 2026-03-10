@@ -11,6 +11,7 @@ part 'settings_state.mapper.dart';
 class SettingsState with SettingsStateMappable {
   final String showToken; // the token to show / maximize the window because only one instance is allowed
   final String alias;
+  final bool isAliasModified;
   final ThemeMode theme;
   final ColorMode colorMode;
   final AppLocale? locale;
@@ -35,10 +36,14 @@ class SettingsState with SettingsStateMappable {
   final bool shareViaLinkAutoAccept;
   final int discoveryTimeout;
   final bool advancedSettings;
+  final bool historyViewMode;
+  final bool selectionViewMode;
+  final bool languageViewMode;
 
   const SettingsState({
     required this.showToken,
     required this.alias,
+    required this.isAliasModified,
     required this.theme,
     required this.colorMode,
     required this.locale,
@@ -63,5 +68,8 @@ class SettingsState with SettingsStateMappable {
     required this.shareViaLinkAutoAccept,
     required this.discoveryTimeout,
     required this.advancedSettings,
+    required this.historyViewMode,
+    required this.selectionViewMode,
+    required this.languageViewMode,
   });
 }

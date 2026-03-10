@@ -171,6 +171,15 @@ class MockPersistenceService extends _i1.Mock
           as String);
 
   @override
+  bool isAliasModified() =>
+      (super.noSuchMethod(
+            Invocation.method(#isAliasModified, []),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
   _i4.Future<void> setAlias(String? alias) =>
       (super.noSuchMethod(
             Invocation.method(#setAlias, [alias]),
@@ -377,9 +386,63 @@ class MockPersistenceService extends _i1.Mock
           as bool);
 
   @override
+  bool isHistoryViewMode() =>
+      (super.noSuchMethod(
+            Invocation.method(#isHistoryViewMode, []),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
+  bool isSelectionViewMode() =>
+      (super.noSuchMethod(
+            Invocation.method(#isSelectionViewMode, []),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
+  bool isLanguageViewMode() =>
+      (super.noSuchMethod(
+            Invocation.method(#isLanguageViewMode, []),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
   _i4.Future<void> setAdvancedSettingsEnabled(bool? isEnabled) =>
       (super.noSuchMethod(
             Invocation.method(#setAdvancedSettingsEnabled, [isEnabled]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> setHistoryViewMode(bool? isGrid) =>
+      (super.noSuchMethod(
+            Invocation.method(#setHistoryViewMode, [isGrid]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> setSelectionViewMode(bool? isGrid) =>
+      (super.noSuchMethod(
+            Invocation.method(#setSelectionViewMode, [isGrid]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> setLanguageViewMode(bool? isGrid) =>
+      (super.noSuchMethod(
+            Invocation.method(#setLanguageViewMode, [isGrid]),
             returnValue: _i4.Future<void>.value(),
             returnValueForMissingStub: _i4.Future<void>.value(),
           )

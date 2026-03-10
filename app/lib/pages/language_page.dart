@@ -28,7 +28,9 @@ class _LanguagePageState extends State<LanguagePage> {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     final activeLocale = context.ref.watch(settingsProvider.select((s) => s.locale));
+    final settings = context.watch(settingsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isGridView = settings.languageViewMode;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -50,44 +52,151 @@ class _LanguagePageState extends State<LanguagePage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Text(
-                  t.sendTab.selection.title,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : LinkDropColors.zinc900,
+                Expanded(
+                  child: Text(
+                    t.sendTab.selection.title,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : LinkDropColors.zinc900,
+                    ),
                   ),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    await context.ref.notifier(settingsProvider).setLanguageViewMode(!isGridView);
+                  },
+                  icon: Icon(
+                    isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
+                  ),
+                  tooltip: isGridView ? '列表视图' : '宫格视图',
+                  color: LinkDropColors.zinc500,
                 ),
               ],
             ),
           ),
 
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              children: [
-                ...[
-                  null,
-                  ...AppLocale.values,
-                ].map((locale) {
-                  return _LanguageItem(
-                    locale: locale,
-                    isActive: locale == activeLocale,
-                    isDark: isDark,
-                    onTap: () async {
-                      await context.ref.notifier(settingsProvider).setLocale(locale);
-                      if (locale == null) {
-                        await LocaleSettings.useDeviceLocale();
-                      } else {
-                        await LocaleSettings.setLocale(locale);
-                      }
+            child: isGridView
+                ? GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 2,
+                    ),
+                    itemCount: [null, ...AppLocale.values].length,
+                    itemBuilder: (context, index) {
+                      final locale = [null, ...AppLocale.values][index];
+                      return _LanguageGridItem(
+                        locale: locale,
+                        isActive: locale == activeLocale,
+                        isDark: isDark,
+                        onTap: () async {
+                          await context.ref.notifier(settingsProvider).setLocale(locale);
+                          if (locale == null) {
+                            await LocaleSettings.useDeviceLocale();
+                          } else {
+                            await LocaleSettings.setLocale(locale);
+                          }
+                        },
+                      );
                     },
-                  );
-                }),
-              ],
-            ),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    children: [
+                      ...[
+                        null,
+                        ...AppLocale.values,
+                      ].map((locale) {
+                        return _LanguageItem(
+                          locale: locale,
+                          isActive: locale == activeLocale,
+                          isDark: isDark,
+                          onTap: () async {
+                            await context.ref.notifier(settingsProvider).setLocale(locale);
+                            if (locale == null) {
+                              await LocaleSettings.useDeviceLocale();
+                            } else {
+                              await LocaleSettings.setLocale(locale);
+                            }
+                          },
+                        );
+                      }),
+                    ],
+                  ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 语言宫格选项组件
+///
+/// 显示单个语言选项的宫格视图
+class _LanguageGridItem extends StatelessWidget {
+  final AppLocale? locale;
+  final bool isActive;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _LanguageGridItem({
+    required this.locale,
+    required this.isActive,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isActive ? (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isActive ? LinkDropColors.teal500 : (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200),
+            width: isActive ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Center(
+                child: Text(
+                  locale?.languageTag.toUpperCase() ?? 'AUTO',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : LinkDropColors.zinc900,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                locale?.humanName ?? t.settingsTab.general.languageOptions.system,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: isDark ? Colors.white : LinkDropColors.zinc900,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.fade,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -120,14 +229,10 @@ class _LanguageItem extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isActive
-              ? (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50)
-              : Colors.transparent,
+          color: isActive ? (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc50) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isActive
-                ? LinkDropColors.teal500
-                : (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200),
+            color: isActive ? LinkDropColors.teal500 : (isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200),
             width: isActive ? 2 : 1,
           ),
         ),

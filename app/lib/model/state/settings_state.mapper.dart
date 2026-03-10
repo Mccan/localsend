@@ -29,6 +29,11 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
   );
   static String _$alias(SettingsState v) => v.alias;
   static const Field<SettingsState, String> _f$alias = Field('alias', _$alias);
+  static bool _$isAliasModified(SettingsState v) => v.isAliasModified;
+  static const Field<SettingsState, bool> _f$isAliasModified = Field(
+    'isAliasModified',
+    _$isAliasModified,
+  );
   static ThemeMode _$theme(SettingsState v) => v.theme;
   static const Field<SettingsState, ThemeMode> _f$theme = Field(
     'theme',
@@ -147,11 +152,27 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     'advancedSettings',
     _$advancedSettings,
   );
+  static bool _$historyViewMode(SettingsState v) => v.historyViewMode;
+  static const Field<SettingsState, bool> _f$historyViewMode = Field(
+    'historyViewMode',
+    _$historyViewMode,
+  );
+  static bool _$selectionViewMode(SettingsState v) => v.selectionViewMode;
+  static const Field<SettingsState, bool> _f$selectionViewMode = Field(
+    'selectionViewMode',
+    _$selectionViewMode,
+  );
+  static bool _$languageViewMode(SettingsState v) => v.languageViewMode;
+  static const Field<SettingsState, bool> _f$languageViewMode = Field(
+    'languageViewMode',
+    _$languageViewMode,
+  );
 
   @override
   final MappableFields<SettingsState> fields = const {
     #showToken: _f$showToken,
     #alias: _f$alias,
+    #isAliasModified: _f$isAliasModified,
     #theme: _f$theme,
     #colorMode: _f$colorMode,
     #locale: _f$locale,
@@ -176,12 +197,16 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #shareViaLinkAutoAccept: _f$shareViaLinkAutoAccept,
     #discoveryTimeout: _f$discoveryTimeout,
     #advancedSettings: _f$advancedSettings,
+    #historyViewMode: _f$historyViewMode,
+    #selectionViewMode: _f$selectionViewMode,
+    #languageViewMode: _f$languageViewMode,
   };
 
   static SettingsState _instantiate(DecodingData data) {
     return SettingsState(
       showToken: data.dec(_f$showToken),
       alias: data.dec(_f$alias),
+      isAliasModified: data.dec(_f$isAliasModified),
       theme: data.dec(_f$theme),
       colorMode: data.dec(_f$colorMode),
       locale: data.dec(_f$locale),
@@ -206,6 +231,9 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       shareViaLinkAutoAccept: data.dec(_f$shareViaLinkAutoAccept),
       discoveryTimeout: data.dec(_f$discoveryTimeout),
       advancedSettings: data.dec(_f$advancedSettings),
+      historyViewMode: data.dec(_f$historyViewMode),
+      selectionViewMode: data.dec(_f$selectionViewMode),
+      languageViewMode: data.dec(_f$languageViewMode),
     );
   }
 
@@ -278,6 +306,7 @@ abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
   $R call({
     String? showToken,
     String? alias,
+    bool? isAliasModified,
     ThemeMode? theme,
     ColorMode? colorMode,
     AppLocale? locale,
@@ -302,6 +331,9 @@ abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     bool? shareViaLinkAutoAccept,
     int? discoveryTimeout,
     bool? advancedSettings,
+    bool? historyViewMode,
+    bool? selectionViewMode,
+    bool? languageViewMode,
   });
   SettingsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -336,6 +368,7 @@ class _SettingsStateCopyWithImpl<$R, $Out>
   $R call({
     String? showToken,
     String? alias,
+    bool? isAliasModified,
     ThemeMode? theme,
     ColorMode? colorMode,
     Object? locale = $none,
@@ -360,10 +393,14 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     bool? shareViaLinkAutoAccept,
     int? discoveryTimeout,
     bool? advancedSettings,
+    bool? historyViewMode,
+    bool? selectionViewMode,
+    bool? languageViewMode,
   }) => $apply(
     FieldCopyWithData({
       if (showToken != null) #showToken: showToken,
       if (alias != null) #alias: alias,
+      if (isAliasModified != null) #isAliasModified: isAliasModified,
       if (theme != null) #theme: theme,
       if (colorMode != null) #colorMode: colorMode,
       if (locale != $none) #locale: locale,
@@ -391,12 +428,16 @@ class _SettingsStateCopyWithImpl<$R, $Out>
         #shareViaLinkAutoAccept: shareViaLinkAutoAccept,
       if (discoveryTimeout != null) #discoveryTimeout: discoveryTimeout,
       if (advancedSettings != null) #advancedSettings: advancedSettings,
+      if (historyViewMode != null) #historyViewMode: historyViewMode,
+      if (selectionViewMode != null) #selectionViewMode: selectionViewMode,
+      if (languageViewMode != null) #languageViewMode: languageViewMode,
     }),
   );
   @override
   SettingsState $make(CopyWithData data) => SettingsState(
     showToken: data.get(#showToken, or: $value.showToken),
     alias: data.get(#alias, or: $value.alias),
+    isAliasModified: data.get(#isAliasModified, or: $value.isAliasModified),
     theme: data.get(#theme, or: $value.theme),
     colorMode: data.get(#colorMode, or: $value.colorMode),
     locale: data.get(#locale, or: $value.locale),
@@ -430,6 +471,12 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     ),
     discoveryTimeout: data.get(#discoveryTimeout, or: $value.discoveryTimeout),
     advancedSettings: data.get(#advancedSettings, or: $value.advancedSettings),
+    historyViewMode: data.get(#historyViewMode, or: $value.historyViewMode),
+    selectionViewMode: data.get(
+      #selectionViewMode,
+      or: $value.selectionViewMode,
+    ),
+    languageViewMode: data.get(#languageViewMode, or: $value.languageViewMode),
   );
 
   @override
