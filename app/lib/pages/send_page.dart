@@ -79,14 +79,14 @@ class _SendPageState extends State<SendPage> with Refena {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : LinkDropColors.zinc900,
+                        color: isDark ? Colors.white : LinkDropColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       t.sendTab.subtitle,
                       style: TextStyle(
-                        color: LinkDropColors.zinc500,
+                        color: LinkDropColors.textSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -142,19 +142,19 @@ class _SendPageState extends State<SendPage> with Refena {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               PulseRipple(
-                                color: isDark ? LinkDropColors.teal500 : LinkDropColors.teal600,
+                                color: isDark ? LinkDropColors.primary : LinkDropColors.primaryDark,
                                 shouldRotate: true,
                                 child: Icon(
                                   Icons.radar_rounded,
                                   size: 48,
-                                  color: isDark ? LinkDropColors.teal500 : LinkDropColors.teal600,
+                                  color: isDark ? LinkDropColors.primary : LinkDropColors.primaryDark,
                                 ),
                               ),
                               const SizedBox(height: 24),
                               Text(
                                 t.sendTab.scanning,
                                 style: TextStyle(
-                                  color: LinkDropColors.zinc500,
+                                  color: LinkDropColors.textSecondary,
                                   fontSize: 14,
                                 ),
                               ),
@@ -208,10 +208,10 @@ class _SendPageState extends State<SendPage> with Refena {
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: _dragAndDropIndicator
-                        ? LinkDropColors.teal500
+                        ? LinkDropColors.primary
                         : isDark
-                        ? LinkDropColors.zinc800
-                        : LinkDropColors.zinc200,
+                            ? LinkDropColors.borderDark
+                            : LinkDropColors.borderLight,
                     style: BorderStyle.solid,
                     width: _dragAndDropIndicator ? 3 : 2,
                   ),
@@ -241,7 +241,7 @@ class _SendPageState extends State<SendPage> with Refena {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : LinkDropColors.zinc900,
+              color: isDark ? Colors.white : LinkDropColors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -290,7 +290,7 @@ class _SendPageState extends State<SendPage> with Refena {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : LinkDropColors.zinc900,
+                    color: isDark ? Colors.white : LinkDropColors.textPrimary,
                   ),
                 ),
               ),
@@ -303,7 +303,7 @@ class _SendPageState extends State<SendPage> with Refena {
                   child: Icon(
                     Icons.close_rounded,
                     size: 18,
-                    color: LinkDropColors.zinc500,
+                    color: LinkDropColors.textSecondary,
                   ),
                 ),
               ),
@@ -323,14 +323,14 @@ class _SendPageState extends State<SendPage> with Refena {
                   Icon(
                     Icons.description_rounded,
                     size: 14,
-                    color: LinkDropColors.teal500,
+                    color: LinkDropColors.primary,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     '${vm.selectedFiles.length} files',
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? Colors.white70 : LinkDropColors.zinc700,
+                      color: isDark ? Colors.white70 : LinkDropColors.textSecondary,
                     ),
                   ),
                 ],
@@ -341,14 +341,14 @@ class _SendPageState extends State<SendPage> with Refena {
                   Icon(
                     Icons.storage_rounded,
                     size: 14,
-                    color: LinkDropColors.teal500,
+                    color: LinkDropColors.primary,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     totalSize.asReadableFileSize,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? Colors.white70 : LinkDropColors.zinc700,
+                      color: isDark ? Colors.white70 : LinkDropColors.textSecondary,
                     ),
                   ),
                 ],
@@ -522,7 +522,7 @@ class _SelectionOptionButton extends StatelessWidget {
                   color: isDark ? LinkDropColors.zinc900 : LinkDropColors.zinc50,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 28, color: LinkDropColors.teal500),
+                child: Icon(icon, size: 28, color: LinkDropColors.primary),
               ),
               const SizedBox(height: 8),
               Text(
@@ -533,7 +533,7 @@ class _SelectionOptionButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white : LinkDropColors.zinc900,
+                  color: isDark ? Colors.white : LinkDropColors.textPrimary,
                 ),
               ),
             ],
@@ -624,7 +624,7 @@ class _ControlButtonState extends State<_ControlButton> with SingleTickerProvide
                 builder: (context, child) {
                   return Transform.rotate(
                     angle: _rotationAnimation.value * 2 * 3.141592653589793,
-                    child: Icon(widget.icon, size: 20, color: LinkDropColors.teal500),
+                    child: Icon(widget.icon, size: 20, color: LinkDropColors.primary),
                   );
                 },
               ),
@@ -634,7 +634,7 @@ class _ControlButtonState extends State<_ControlButton> with SingleTickerProvide
               widget.label,
               style: TextStyle(
                 fontSize: 12,
-                color: LinkDropColors.zinc500,
+                color: LinkDropColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -705,7 +705,7 @@ class _FileThumbnailCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: fileNameFontSize,
-                  color: isDark ? Colors.white70 : LinkDropColors.zinc700,
+                  color: isDark ? Colors.white70 : LinkDropColors.textSecondary,
                 ),
               ),
             ),
@@ -753,7 +753,7 @@ class _ActionButton extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: LinkDropColors.teal500,
+              color: LinkDropColors.primary,
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -764,7 +764,7 @@ class _ActionButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white : LinkDropColors.zinc900,
+                  color: isDark ? Colors.white : LinkDropColors.textPrimary,
                 ),
               ),
             ),
@@ -824,7 +824,7 @@ class _SendModeButton extends StatelessWidget {
                     maintainSize: true,
                     maintainAnimation: true,
                     maintainState: true,
-                    child: const Icon(Icons.check_circle),
+                    child: Icon(Icons.check_circle, color: LinkDropColors.primary),
                   );
                 },
               ),
@@ -846,7 +846,7 @@ class _SendModeButton extends StatelessWidget {
                     maintainSize: true,
                     maintainAnimation: true,
                     maintainState: true,
-                    child: const Icon(Icons.check_circle),
+                    child: Icon(Icons.check_circle, color: LinkDropColors.primary),
                   );
                 },
               ),
@@ -902,14 +902,14 @@ class _SendModeButton extends StatelessWidget {
                   color: isDark ? LinkDropColors.zinc700 : LinkDropColors.zinc200,
                 ),
               ),
-              child: const Icon(Icons.tune_rounded, size: 20, color: LinkDropColors.teal500),
+              child: Icon(Icons.tune_rounded, size: 20, color: LinkDropColors.primary),
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: LinkDropColors.zinc500,
+                color: LinkDropColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),

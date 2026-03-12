@@ -122,7 +122,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : LinkDropColors.zinc900,
+                              color: isDark ? Colors.white : LinkDropColors.textPrimary,
                             ),
                           ),
                           const Spacer(),
@@ -134,7 +134,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                             },
                             icon: const Icon(Icons.history),
                             tooltip: 'History',
-                            color: LinkDropColors.zinc500,
+                            color: LinkDropColors.textSecondary,
                           ),
                         ],
                       ),
@@ -142,7 +142,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                       Text(
                         t.receiveTab.subtitle,
                         style: TextStyle(
-                          color: LinkDropColors.zinc500,
+                          color: LinkDropColors.textSecondary,
                           fontSize: 14,
                         ),
                       ),
@@ -191,7 +191,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                 children: [
                   // 脉冲动画图标
                   PulseRipple(
-                    color: LinkDropColors.teal500,
+                    color: LinkDropColors.primary,
                     child: Container(
                       width: 160,
                       height: 160,
@@ -199,7 +199,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                         color: isDark ? LinkDropColors.zinc900 : Colors.white,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+                          color: isDark ? LinkDropColors.borderDark : LinkDropColors.borderLight,
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -209,10 +209,10 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.download_rounded,
                         size: 64,
-                        color: LinkDropColors.teal500,
+                        color: LinkDropColors.primary,
                       ),
                     ),
                   ),
@@ -222,7 +222,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : LinkDropColors.zinc900,
+                      color: isDark ? Colors.white : LinkDropColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -238,18 +238,18 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.wifi, size: 16, color: LinkDropColors.zinc500),
+                          Icon(Icons.wifi, size: 16, color: LinkDropColors.textSecondary),
                           const SizedBox(width: 8),
                           Text(
                             _formatDisplayName(settings.alias, settings.isAliasModified, vm.localIps.firstOrNull),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: LinkDropColors.zinc500,
+                              color: LinkDropColors.textSecondary,
                               fontFamily: 'monospace',
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Icon(Icons.edit, size: 14, color: LinkDropColors.zinc500),
+                          Icon(Icons.edit, size: 14, color: LinkDropColors.textSecondary),
                         ],
                       ),
                     ),
@@ -264,7 +264,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                       color: isDark ? LinkDropColors.zinc900 : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+                        color: isDark ? LinkDropColors.borderDark : LinkDropColors.borderLight,
                       ),
                     ),
                     child: Row(
@@ -273,7 +273,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                         Text(
                           t.general.quickSave,
                           style: TextStyle(
-                            color: isDark ? Colors.white : LinkDropColors.zinc900,
+                            color: isDark ? Colors.white : LinkDropColors.textPrimary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -281,7 +281,7 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                         Switch(
                           value: vm.quickSaveSettings,
                           onChanged: (value) => vm.onSetQuickSave(context, value),
-                          activeThumbColor: LinkDropColors.teal500,
+                          activeThumbColor: LinkDropColors.primary,
                         ),
                       ],
                     ),
@@ -359,14 +359,14 @@ class _InfoItem extends StatelessWidget {
           Text(
             '$label: ',
             style: TextStyle(
-              color: LinkDropColors.zinc500,
+              color: LinkDropColors.textSecondary,
               fontSize: 12,
             ),
           ),
           SelectableText(
             value,
             style: TextStyle(
-              color: isDark ? Colors.white : LinkDropColors.zinc900,
+              color: isDark ? Colors.white : LinkDropColors.textPrimary,
               fontSize: 12,
               fontFamily: 'monospace',
             ),
@@ -376,7 +376,7 @@ class _InfoItem extends StatelessWidget {
             Icon(
               Icons.edit,
               size: 12,
-              color: LinkDropColors.zinc500,
+              color: LinkDropColors.textSecondary,
             ),
           ],
         ],

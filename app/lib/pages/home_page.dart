@@ -3,19 +3,23 @@ import 'dart:io';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:localsend_app/config/init.dart';
-import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
+import 'package:localsend_app/model/user.dart';
 import 'package:localsend_app/pages/home_page_controller.dart';
+import 'package:localsend_app/pages/login_page.dart';
+import 'package:localsend_app/pages/payment_page.dart';
 import 'package:localsend_app/pages/receive_page.dart';
 import 'package:localsend_app/pages/send_page.dart';
 import 'package:localsend_app/pages/settings_page.dart';
+import 'package:localsend_app/provider/auth_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
-import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/widget/responsive_builder.dart';
+import 'package:provider/provider.dart' as provider;
 import 'package:refena_flutter/refena_flutter.dart';
 
 enum HomeTab {
@@ -69,9 +73,13 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
   @override
   Widget build(BuildContext context) {
     Translations.of(context); // rebuild on locale change
-    final vm = context.watch(homePageControllerProvider);
-    final settings = context.watch(settingsProvider);
+    // Use ref.watch for refena providers, context.watch<AuthProvider> for provider
+    final vm = ref.watch(homePageControllerProvider);
+    final settings = ref.watch(settingsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final authProvider = provider.Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final isAuthenticated = authProvider.isAuthenticated;
 
     return DropTarget(
       onDragEntered: (_) => setState(() => _dragAndDropIndicator = true),
@@ -104,12 +112,14 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                         onDestinationSelected: (index) => vm.changeTab(HomeTab.values[index]),
                         extended: _isSidebarExpanded,
                         backgroundColor: Theme.of(context).cardColorWithElevation,
-                        indicatorColor: Theme.of(context).colorScheme.primary,
+                        indicatorColor: isDark
+                            ? LinkDropColors.primary.withValues(alpha: 0.15)
+                            : LinkDropColors.primaryLight,
                         indicatorShape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         selectedLabelTextStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: isDark ? Colors.white : LinkDropColors.primaryDark,
                           fontWeight: FontWeight.bold,
                         ),
                         leading: Column(
@@ -119,7 +129,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                               color: Colors.transparent,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(8),
-                                hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                hoverColor: LinkDropColors.primary.withOpacity(0.1),
                                 onTap: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -129,7 +139,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: Colors.black,
+                                          gradient: LinkDropColors.primaryGradient,
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: AnimatedRotation(
@@ -178,7 +188,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                               Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  hoverColor: LinkDropColors.primary.withOpacity(0.1),
                                   onTap: () async {
                                     await ref
                                         .notifier(settingsProvider)
@@ -213,37 +223,139 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                   offset: const Offset(40, -120),
                                   tooltip: '',
                                   itemBuilder: (context) => [
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Text(t.settingsTab.general.loginStatus + ': Guest'),
-                                    ),
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Text('VIP: ' + t.general.inactive),
-                                    ),
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Row(
-                                        children: [
-                                          Text(t.settingsTab.general.invite + ': 888888'),
-                                          const SizedBox(width: 8),
-                                          Icon(Icons.copy, size: 16, color: Theme.of(context).colorScheme.primary),
-                                        ],
+                                    if (isAuthenticated && user != null) ...[
+                                      PopupMenuItem(
+                                        enabled: false,
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.person, size: 18),
+                                            const SizedBox(width: 8),
+                                            Text(user.username),
+                                          ],
+                                        ),
                                       ),
-                                    ),
+                                      PopupMenuItem(
+                                        enabled: false,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              user.isVipActive ? Icons.workspace_premium : Icons.person_outline,
+                                              size: 18,
+                                              color: user.isVipActive ? LinkDropColors.primary : null,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              user.isVipActive
+                                                  ? 'VIP · 剩余${user.vipRemainingDays}天'
+                                                  : '普通用户',
+                                              style: TextStyle(
+                                                color: user.isVipActive ? LinkDropColors.primary : null,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (user.inviteCode != null)
+                                        PopupMenuItem(
+                                          enabled: false,
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.card_giftcard, size: 18),
+                                              const SizedBox(width: 8),
+                                              Text('邀请码: ${user.inviteCode}'),
+                                              const SizedBox(width: 8),
+                                              InkWell(
+                                                onTap: () {
+                                                  Clipboard.setData(ClipboardData(text: user.inviteCode!));
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text('邀请码已复制')),
+                                                  );
+                                                },
+                                                child: Icon(Icons.copy, size: 16, color: LinkDropColors.primary),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      const PopupMenuDivider(),
+                                      PopupMenuItem(
+                                        value: 'payment',
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.payment, size: 18),
+                                            const SizedBox(width: 8),
+                                            Text(user.isVipActive ? '续费会员' : '开通会员'),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'logout',
+                                        child: const Row(
+                                          children: [
+                                            Icon(Icons.logout, size: 18),
+                                            SizedBox(width: 8),
+                                            Text('退出登录'),
+                                          ],
+                                        ),
+                                      ),
+                                    ] else ...[
+                                      PopupMenuItem(
+                                        enabled: false,
+                                        child: Text(t.settingsTab.general.loginStatus + ': 未登录'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'login',
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.login, size: 18),
+                                            const SizedBox(width: 8),
+                                            Text('登录'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ],
+                                  onSelected: (value) async {
+                                    if (value == 'login') {
+                                      final result = await Navigator.of(context).push<bool>(
+                                        MaterialPageRoute(
+                                          builder: (context) => const LoginPage(),
+                                          fullscreenDialog: true,
+                                        ),
+                                      );
+                                      if (result == true) {
+                                        setState(() {});
+                                      }
+                                    } else if (value == 'payment') {
+                                      await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => const PaymentPage(),
+                                          fullscreenDialog: true,
+                                        ),
+                                      );
+                                      await provider.Provider.of<AuthProvider>(context, listen: false).refreshUser();
+                                      setState(() {});
+                                    } else if (value == 'logout') {
+                                      await provider.Provider.of<AuthProvider>(context, listen: false).logout();
+                                      setState(() {});
+                                    }
+                                  },
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
                                     child: Row(
                                       mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
                                       children: [
-                                        const Icon(
-                                          Icons.person,
+                                        Icon(
+                                          isAuthenticated ? Icons.person : Icons.person_outline,
                                           size: 24,
                                         ),
                                         if (_isSidebarExpanded) ...[
                                           const SizedBox(width: 16),
-                                          Text(t.settingsTab.general.profile, style: const TextStyle(fontSize: 14)),
+                                          Text(
+                                            isAuthenticated && user != null
+                                                ? user.username
+                                                : t.settingsTab.general.profile,
+                                            style: const TextStyle(fontSize: 14),
+                                          ),
                                         ],
                                       ],
                                     ),

@@ -1,23 +1,22 @@
-import 'dart:io';
-
 import 'package:common/model/device.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/pages/language_page.dart';
+import 'package:localsend_app/pages/login_page.dart';
+import 'package:localsend_app/pages/payment_page.dart';
 import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
 import 'package:localsend_app/pages/widget/settings_group.dart';
 import 'package:localsend_app/pages/widget/settings_item.dart';
-import 'package:localsend_app/pages/widget/settings_text_field.dart';
+import 'package:localsend_app/provider/auth_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
-import 'package:localsend_app/util/alias_generator.dart';
 import 'package:localsend_app/util/device_type_ext.dart';
-import 'package:localsend_app/util/native/autostart_helper.dart';
 import 'package:localsend_app/util/native/context_menu_helper.dart';
 import 'package:localsend_app/util/native/pick_directory_path.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
+import 'package:provider/provider.dart' as provider;
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// 设置页面
@@ -73,8 +72,11 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final ref = context.ref;
-    final vm = context.watch(settingsTabControllerProvider);
+    final vm = ref.watch(settingsTabControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final authProvider = provider.Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final isAuthenticated = authProvider.isAuthenticated;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -94,14 +96,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : LinkDropColors.zinc900,
+                        color: isDark ? Colors.white : LinkDropColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       t.settingsTab.subtitle,
                       style: TextStyle(
-                        color: LinkDropColors.zinc500,
+                        color: LinkDropColors.textSecondary,
                         fontSize: 14,
                       ),
                     ),
@@ -116,6 +118,96 @@ class _SettingsPageState extends State<SettingsPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               children: [
+                // 用户信息区域
+                SettingsGroup(
+                  title: '账户',
+                  isDark: isDark,
+                  children: [
+                    if (isAuthenticated && user != null) ...[
+                      SettingsItem(
+                        icon: Icons.person,
+                        title: user.username,
+                        value: user.isVipActive ? 'VIP会员' : '普通用户',
+                        isDark: isDark,
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: user.isVipActive ? LinkDropColors.primary.withOpacity(0.1) : LinkDropColors.zinc200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            user.isVipActive ? 'VIP' : '普通',
+                            style: TextStyle(
+                              color: user.isVipActive ? LinkDropColors.primary : LinkDropColors.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SettingsItem(
+                        icon: Icons.workspace_premium,
+                        title: user.isVipActive ? '续费会员' : '开通会员',
+                        value: user.isVipActive ? '剩余${user.vipRemainingDays}天' : '享受更多特权',
+                        isDark: isDark,
+                        onTap: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const PaymentPage(),
+                              fullscreenDialog: true,
+                            ),
+                          );
+                          await provider.Provider.of<AuthProvider>(context, listen: false).refreshUser();
+                          setState(() {});
+                        },
+                      ),
+                      if (user.inviteCode != null)
+                        SettingsItem(
+                          icon: Icons.card_giftcard,
+                          title: '我的邀请码',
+                          value: user.inviteCode,
+                          isDark: isDark,
+                          trailing: InkWell(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: user.inviteCode!));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('邀请码已复制')),
+                              );
+                            },
+                            child: Icon(Icons.copy, size: 20, color: LinkDropColors.primary),
+                          ),
+                        ),
+                      SettingsItem(
+                        icon: Icons.logout,
+                        title: '退出登录',
+                        isDark: isDark,
+                        onTap: () async {
+                          await provider.Provider.of<AuthProvider>(context, listen: false).logout();
+                          setState(() {});
+                        },
+                      ),
+                    ] else ...[
+                      SettingsItem(
+                        icon: Icons.login,
+                        title: '登录 / 注册',
+                        value: '登录后享受更多功能',
+                        isDark: isDark,
+                        onTap: () async {
+                          final result = await Navigator.of(context).push<bool>(
+                            MaterialPageRoute(
+                              builder: (context) => const LoginPage(),
+                              fullscreenDialog: true,
+                            ),
+                          );
+                          if (result == true) {
+                            setState(() {});
+                          }
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+
                 // 常规设置
                 SettingsGroup(
                   title: t.settingsTab.general.title,
@@ -136,14 +228,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         value: vm.settings.theme,
                         dropdownColor: isDark ? LinkDropColors.zinc800 : Colors.white,
                         underline: Container(),
-                        icon: const Icon(Icons.arrow_drop_down, color: LinkDropColors.zinc500),
+                        icon: Icon(Icons.arrow_drop_down, color: LinkDropColors.textSecondary),
                         items: vm.themeModes.map((theme) {
                           return DropdownMenuItem(
                             value: theme,
                             child: Text(
                               theme.humanName,
                               style: TextStyle(
-                                color: isDark ? Colors.white : LinkDropColors.zinc900,
+                                color: isDark ? Colors.white : LinkDropColors.textPrimary,
                                 fontSize: 14,
                               ),
                             ),
@@ -189,13 +281,13 @@ class _SettingsPageState extends State<SettingsPage> {
                         value: vm.deviceInfo.deviceType,
                         dropdownColor: isDark ? LinkDropColors.zinc800 : Colors.white,
                         underline: Container(),
-                        icon: const Icon(Icons.arrow_drop_down, color: LinkDropColors.zinc500),
+                        icon: Icon(Icons.arrow_drop_down, color: LinkDropColors.textSecondary),
                         items: DeviceType.values.map((type) {
                           return DropdownMenuItem(
                             value: type,
                             child: Icon(
                               type.icon,
-                              color: isDark ? Colors.white : LinkDropColors.zinc900,
+                              color: isDark ? Colors.white : LinkDropColors.textPrimary,
                             ),
                           );
                         }).toList(),

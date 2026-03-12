@@ -38,7 +38,7 @@ class SettingsItem extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 18,
-                color: isDark ? LinkDropColors.zinc400 : LinkDropColors.zinc500,
+                color: isDark ? LinkDropColors.zinc400 : LinkDropColors.textSecondary,
               ),
             ),
             const SizedBox(width: 16),
@@ -51,7 +51,7 @@ class SettingsItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? LinkDropColors.zinc200 : LinkDropColors.zinc900,
+                      color: isDark ? LinkDropColors.zinc200 : LinkDropColors.textPrimary,
                     ),
                   ),
                   if (child != null) child!,
@@ -61,9 +61,9 @@ class SettingsItem extends StatelessWidget {
             if (value != null)
               Text(
                 value!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: LinkDropColors.zinc500,
+                  color: LinkDropColors.textSecondary,
                 ),
               ),
             if (trailing != null) trailing!,

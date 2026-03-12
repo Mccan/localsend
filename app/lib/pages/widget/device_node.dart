@@ -29,8 +29,8 @@ class DeviceNode extends StatelessWidget {
     final icon = device.deviceType == DeviceType.mobile
         ? Icons.smartphone
         : device.deviceType == DeviceType.desktop
-        ? Icons.computer
-        : Icons.laptop;
+            ? Icons.computer
+            : Icons.laptop;
 
     return GestureDetector(
       onTap: onTap,
@@ -41,7 +41,7 @@ class DeviceNode extends StatelessWidget {
           color: isDark ? LinkDropColors.zinc900 : LinkDropColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+            color: isDark ? LinkDropColors.borderDark : LinkDropColors.borderLight,
           ),
         ),
         child: Row(
@@ -71,7 +71,7 @@ class DeviceNode extends StatelessWidget {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: LinkDropColors.teal500,
+                      color: LinkDropColors.primary,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: isDark ? LinkDropColors.zinc900 : Colors.white,
@@ -94,7 +94,7 @@ class DeviceNode extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? LinkDropColors.zinc200 : LinkDropColors.zinc900,
+                          color: isDark ? LinkDropColors.zinc200 : LinkDropColors.textPrimary,
                         ),
                       ),
                       if (isFavorite) ...[
@@ -112,9 +112,9 @@ class DeviceNode extends StatelessWidget {
                     children: [
                       Text(
                         '${device.deviceType.name} • ${device.ip}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: LinkDropColors.zinc500,
+                          color: LinkDropColors.textSecondary,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -162,10 +162,10 @@ class _SignalStrengthIndicator extends StatelessWidget {
           margin: const EdgeInsets.only(right: 1),
           decoration: BoxDecoration(
             color: isActive
-                ? LinkDropColors.teal500
+                ? LinkDropColors.primary
                 : isDark
-                ? LinkDropColors.zinc700
-                : LinkDropColors.zinc300,
+                    ? LinkDropColors.zinc700
+                    : LinkDropColors.zinc300,
             borderRadius: BorderRadius.circular(1),
           ),
         );

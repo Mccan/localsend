@@ -21,7 +21,7 @@ class SettingsGroup extends StatelessWidget {
         color: isDark ? LinkDropColors.zinc900 : LinkDropColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+          color: isDark ? LinkDropColors.borderDark : LinkDropColors.borderLight,
         ),
       ),
       child: Column(
@@ -31,17 +31,17 @@ class SettingsGroup extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               title.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: LinkDropColors.zinc500,
+                color: LinkDropColors.textSecondary,
                 letterSpacing: 1.0,
               ),
             ),
           ),
           Divider(
             height: 1,
-            color: isDark ? LinkDropColors.zinc800 : LinkDropColors.zinc200,
+            color: isDark ? LinkDropColors.borderDark : LinkDropColors.borderLight,
           ),
           ...children,
         ],
