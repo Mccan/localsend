@@ -37,6 +37,9 @@ class WindowDimensionsController {
   Future<void> initDimensionsConfiguration() async {
     await WindowManager.instance.setMinimumSize(_minimalSize);
 
+    // 隐藏窗口标题栏按钮（最小化、最大化、关闭）
+    await WindowManager.instance.setTitleBarStyle(TitleBarStyle.hidden);
+
     // 在部分桌面平台/窗口实现下，仅设置 window_manager 的最小尺寸并不足以限制用户继续缩小窗口。
     // bitsdojo_window 的 minSize 需要在 window ready 之后设置。
     doWhenWindowReady(() {

@@ -19,6 +19,7 @@ import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:localsend_app/widget/responsive_builder.dart';
+import 'package:localsend_app/widget/window_title_bar.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -72,8 +73,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
 
   @override
   Widget build(BuildContext context) {
-    Translations.of(context); // rebuild on locale change
-    // Use ref.watch for refena providers, context.watch<AuthProvider> for provider
+    Translations.of(context);
     final vm = ref.watch(homePageControllerProvider);
     final settings = ref.watch(settingsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -102,114 +102,61 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
       child: ResponsiveBuilder(
         builder: (sizingInformation) {
           return Scaffold(
-            body: Row(
-              children: [
-                if (!sizingInformation.isMobile)
-                  Stack(
-                    children: [
-                      NavigationRail(
-                        selectedIndex: vm.currentTab.index,
-                        onDestinationSelected: (index) => vm.changeTab(HomeTab.values[index]),
-                        extended: _isSidebarExpanded,
-                        backgroundColor: Theme.of(context).cardColorWithElevation,
-                        indicatorColor: isDark
-                            ? LinkDropColors.primary.withValues(alpha: 0.15)
-                            : LinkDropColors.primaryLight,
-                        indicatorShape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        selectedLabelTextStyle: TextStyle(
-                          color: isDark ? Colors.white : LinkDropColors.primaryDark,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        leading: Column(
-                          children: [
-                            const SizedBox(height: 40),
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(8),
-                                hoverColor: LinkDropColors.primary.withOpacity(0.1),
-                                onTap: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          gradient: LinkDropColors.primaryGradient,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: AnimatedRotation(
-                                          turns: _isSidebarExpanded ? 0 : 0.5,
-                                          duration: const Duration(milliseconds: 200),
-                                          child: const Icon(
-                                            Icons.send,
-                                            size: 24,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                      if (_isSidebarExpanded) ...[
-                                        const SizedBox(width: 12),
-                                        const Text(
-                                          'LinkDrop',
-                                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                        destinations: HomeTab.values.map((tab) {
-                          return NavigationRailDestination(
-                            icon: Icon(tab.icon),
-                            selectedIcon: Icon(tab.icon, color: Colors.white),
-                            label: Text(tab.label),
-                          );
-                        }).toList(),
-                      ),
-                      // Bottom items: Theme & Profile
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+            body: Container(
+              color: isDark ? const Color(0xFF1c1c1e) : LinkDropColors.primaryLight,
+              child: Row(
+                children: [
+                  if (!sizingInformation.isMobile)
+                    Stack(
+                      children: [
+                        NavigationRail(
+                          selectedIndex: vm.currentTab.index,
+                          onDestinationSelected: (index) => vm.changeTab(HomeTab.values[index]),
+                          extended: _isSidebarExpanded,
+                          backgroundColor: isDark ? const Color(0xFF1c1c1e) : LinkDropColors.primaryLight,
+                          indicatorColor: isDark ? LinkDropColors.primary.withValues(alpha: 0.15) : LinkDropColors.primaryLight,
+                          indicatorShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          selectedLabelTextStyle: TextStyle(
+                            color: isDark ? Colors.white : LinkDropColors.primaryDark,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          leading: Column(
                             children: [
+                              const SizedBox(height: 40),
                               Material(
                                 color: Colors.transparent,
                                 child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
                                   hoverColor: LinkDropColors.primary.withOpacity(0.1),
-                                  onTap: () async {
-                                    await ref
-                                        .notifier(settingsProvider)
-                                        .setTheme(
-                                          settings.theme == ThemeMode.light ? ThemeMode.dark : ThemeMode.light,
-                                        );
-                                  },
+                                  onTap: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                     child: Row(
-                                      mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(
-                                          settings.theme == ThemeMode.light ? Icons.light_mode : Icons.dark_mode,
-                                          size: 24,
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            gradient: LinkDropColors.primaryGradient,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: AnimatedRotation(
+                                            turns: _isSidebarExpanded ? 0 : 0.5,
+                                            duration: const Duration(milliseconds: 200),
+                                            child: const Icon(
+                                              Icons.send,
+                                              size: 24,
+                                              color: Colors.white,
+                                            ),
+                                          ),
                                         ),
                                         if (_isSidebarExpanded) ...[
                                           const SizedBox(width: 12),
-                                          Text(
-                                            settings.theme == ThemeMode.light ? '日间模式' : '夜间模式',
-                                            style: const TextStyle(fontSize: 14),
+                                          const Text(
+                                            'LinkDrop',
+                                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                                           ),
                                         ],
                                       ],
@@ -217,196 +164,286 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                   ),
                                 ),
                               ),
-                              MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: PopupMenuButton<String>(
-                                  offset: const Offset(40, -120),
-                                  tooltip: '',
-                                  itemBuilder: (context) => [
-                                    if (isAuthenticated && user != null) ...[
-                                      PopupMenuItem(
-                                        enabled: false,
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.person, size: 18),
-                                            const SizedBox(width: 8),
-                                            Text(user.username),
-                                          ],
-                                        ),
-                                      ),
-                                      PopupMenuItem(
-                                        enabled: false,
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              user.isVipActive ? Icons.workspace_premium : Icons.person_outline,
-                                              size: 18,
-                                              color: user.isVipActive ? LinkDropColors.primary : null,
-                                            ),
-                                            const SizedBox(width: 8),
+                              const SizedBox(height: 10),
+                            ],
+                          ),
+                          destinations: HomeTab.values.map((tab) {
+                            return NavigationRailDestination(
+                              icon: Icon(tab.icon),
+                              selectedIcon: Icon(tab.icon, color: LinkDropColors.primary),
+                              label: Text(tab.label),
+                            );
+                          }).toList(),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    hoverColor: LinkDropColors.primary.withOpacity(0.1),
+                                    onTap: () async {
+                                      await ref
+                                          .notifier(settingsProvider)
+                                          .setTheme(
+                                            settings.theme == ThemeMode.light ? ThemeMode.dark : ThemeMode.light,
+                                          );
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
+                                      child: Row(
+                                        mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            settings.theme == ThemeMode.light ? Icons.light_mode : Icons.dark_mode,
+                                            size: 24,
+                                          ),
+                                          if (_isSidebarExpanded) ...[
+                                            const SizedBox(width: 12),
                                             Text(
-                                              user.isVipActive
-                                                  ? 'VIP · 剩余${user.vipRemainingDays}天'
-                                                  : '普通用户',
-                                              style: TextStyle(
-                                                color: user.isVipActive ? LinkDropColors.primary : null,
-                                              ),
+                                              settings.theme == ThemeMode.light ? '日间模式' : '夜间模式',
+                                              style: const TextStyle(fontSize: 14),
                                             ),
                                           ],
-                                        ),
+                                        ],
                                       ),
-                                      if (user.inviteCode != null)
+                                    ),
+                                  ),
+                                ),
+                                MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: PopupMenuButton<String>(
+                                    offset: const Offset(40, -120),
+                                    tooltip: '',
+                                    itemBuilder: (context) => [
+                                      if (isAuthenticated && user != null) ...[
                                         PopupMenuItem(
                                           enabled: false,
                                           child: Row(
                                             children: [
-                                              const Icon(Icons.card_giftcard, size: 18),
+                                              const Icon(Icons.person, size: 18),
                                               const SizedBox(width: 8),
-                                              Text('邀请码: ${user.inviteCode}'),
+                                              Text(user.username),
+                                            ],
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          enabled: false,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                user.isVipActive ? Icons.workspace_premium : Icons.person_outline,
+                                                size: 18,
+                                                color: user.isVipActive ? LinkDropColors.primary : null,
+                                              ),
                                               const SizedBox(width: 8),
-                                              InkWell(
-                                                onTap: () {
-                                                  Clipboard.setData(ClipboardData(text: user.inviteCode!));
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text('邀请码已复制')),
-                                                  );
-                                                },
-                                                child: Icon(Icons.copy, size: 16, color: LinkDropColors.primary),
+                                              Text(
+                                                user.isVipActive ? 'VIP · 剩余${user.vipRemainingDays}天' : '普通用户',
+                                                style: TextStyle(
+                                                  color: user.isVipActive ? LinkDropColors.primary : null,
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                      const PopupMenuDivider(),
-                                      PopupMenuItem(
-                                        value: 'payment',
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.payment, size: 18),
-                                            const SizedBox(width: 8),
-                                            Text(user.isVipActive ? '续费会员' : '开通会员'),
-                                          ],
+                                        if (user.inviteCode != null)
+                                          PopupMenuItem(
+                                            enabled: false,
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.card_giftcard, size: 18),
+                                                const SizedBox(width: 8),
+                                                Text('邀请码: ${user.inviteCode}'),
+                                                const SizedBox(width: 8),
+                                                InkWell(
+                                                  onTap: () {
+                                                    Clipboard.setData(ClipboardData(text: user.inviteCode!));
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('邀请码已复制')),
+                                                    );
+                                                  },
+                                                  child: Icon(Icons.copy, size: 16, color: LinkDropColors.primary),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        const PopupMenuDivider(),
+                                        PopupMenuItem(
+                                          value: 'payment',
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.payment, size: 18),
+                                              const SizedBox(width: 8),
+                                              Text(user.isVipActive ? '续费会员' : '开通会员'),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'logout',
-                                        child: const Row(
-                                          children: [
-                                            Icon(Icons.logout, size: 18),
-                                            SizedBox(width: 8),
-                                            Text('退出登录'),
-                                          ],
+                                        PopupMenuItem(
+                                          value: 'logout',
+                                          child: const Row(
+                                            children: [
+                                              Icon(Icons.logout, size: 18),
+                                              SizedBox(width: 8),
+                                              Text('退出登录'),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ] else ...[
-                                      PopupMenuItem(
-                                        enabled: false,
-                                        child: Text(t.settingsTab.general.loginStatus + ': 未登录'),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'login',
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.login, size: 18),
-                                            const SizedBox(width: 8),
-                                            Text('登录'),
-                                          ],
+                                      ] else ...[
+                                        PopupMenuItem(
+                                          enabled: false,
+                                          child: Text(t.settingsTab.general.loginStatus + ': 未登录'),
                                         ),
-                                      ),
+                                        PopupMenuItem(
+                                          value: 'login',
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.login, size: 18),
+                                              const SizedBox(width: 8),
+                                              Text('登录'),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ],
-                                  ],
-                                  onSelected: (value) async {
-                                    if (value == 'login') {
-                                      final result = await Navigator.of(context).push<bool>(
-                                        MaterialPageRoute(
-                                          builder: (context) => const LoginPage(),
-                                          fullscreenDialog: true,
-                                        ),
-                                      );
-                                      if (result == true) {
+                                    onSelected: (value) async {
+                                      if (value == 'login') {
+                                        final result = await Navigator.of(context).push<bool>(
+                                          MaterialPageRoute(
+                                            builder: (context) => const LoginPage(),
+                                            fullscreenDialog: true,
+                                          ),
+                                        );
+                                        if (result == true) {
+                                          setState(() {});
+                                        }
+                                      } else if (value == 'payment') {
+                                        await Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => const PaymentPage(),
+                                            fullscreenDialog: true,
+                                          ),
+                                        );
+                                        await provider.Provider.of<AuthProvider>(context, listen: false).refreshUser();
+                                        setState(() {});
+                                      } else if (value == 'logout') {
+                                        await provider.Provider.of<AuthProvider>(context, listen: false).logout();
                                         setState(() {});
                                       }
-                                    } else if (value == 'payment') {
-                                      await Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => const PaymentPage(),
-                                          fullscreenDialog: true,
-                                        ),
-                                      );
-                                      await provider.Provider.of<AuthProvider>(context, listen: false).refreshUser();
-                                      setState(() {});
-                                    } else if (value == 'logout') {
-                                      await provider.Provider.of<AuthProvider>(context, listen: false).logout();
-                                      setState(() {});
-                                    }
-                                  },
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
-                                    child: Row(
-                                      mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          isAuthenticated ? Icons.person : Icons.person_outline,
-                                          size: 24,
-                                        ),
-                                        if (_isSidebarExpanded) ...[
-                                          const SizedBox(width: 16),
-                                          Text(
-                                            isAuthenticated && user != null
-                                                ? user.username
-                                                : t.settingsTab.general.profile,
-                                            style: const TextStyle(fontSize: 14),
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16, horizontal: _isSidebarExpanded ? 24 : 0),
+                                      child: Row(
+                                        mainAxisAlignment: _isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            isAuthenticated ? Icons.person : Icons.person_outline,
+                                            size: 24,
                                           ),
+                                          if (_isSidebarExpanded) ...[
+                                            const SizedBox(width: 16),
+                                            Text(
+                                              isAuthenticated && user != null ? user.username : t.settingsTab.general.profile,
+                                              style: const TextStyle(fontSize: 14),
+                                            ),
+                                          ],
                                         ],
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: 40,
+                          child: MoveWindow(),
+                        ),
+                      ],
+                    ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        // 标题栏 - 与左侧菜单同色
+                        WindowTitleBar(
+                          backgroundColor: isDark ? const Color(0xFF1c1c1e) : LinkDropColors.primaryLight,
+                        ),
+                        // 内容区域 - 白色/深色圆角卡片
+                        Expanded(
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 12, bottom: 12, left: 0, top: 0),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF2c2c2e) : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: isDark
+                                  ? Border.all(
+                                      color: const Color(0xFF3a3a3c),
+                                      width: 1,
+                                    )
+                                  : null,
+                              boxShadow: isDark
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ]
+                                  : [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Stack(
+                                children: [
+                                  PageView(
+                                    controller: vm.controller,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    children: const [
+                                      SafeArea(child: ReceivePage()),
+                                      SafeArea(child: SendPage()),
+                                      SettingsPage(),
+                                    ],
+                                  ),
+                                  if (_dragAndDropIndicator)
+                                    Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).scaffoldBackgroundColor,
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.file_download, size: 128),
+                                          const SizedBox(height: 30),
+                                          Text(t.sendTab.placeItems, style: Theme.of(context).textTheme.titleLarge),
+                                        ],
+                                      ),
+                                    ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                      // makes the top draggable
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: 40,
-                        child: MoveWindow(),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      PageView(
-                        controller: vm.controller,
-                        physics: const NeverScrollableScrollPhysics(),
-                        children: const [
-                          SafeArea(child: ReceivePage()),
-                          SafeArea(child: SendPage()),
-                          SettingsPage(),
-                        ],
-                      ),
-                      if (_dragAndDropIndicator)
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.file_download, size: 128),
-                              const SizedBox(height: 30),
-                              Text(t.sendTab.placeItems, style: Theme.of(context).textTheme.titleLarge),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
             bottomNavigationBar: sizingInformation.isMobile
                 ? NavigationBar(

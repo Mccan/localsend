@@ -40,15 +40,23 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Future<void> _loadItems() async {
-    final items = await _apiService.getRechargeItems();
-    if (mounted) {
-      setState(() {
-        _items = items;
-        _isLoading = false;
-        if (items.isNotEmpty) {
-          _selectedItem = items.first;
-        }
-      });
+    setState(() => _isLoading = true);
+    try {
+      final items = await _apiService.getRechargeItems();
+      if (mounted) {
+        setState(() {
+          _items = items;
+          _isLoading = false;
+          if (items.isNotEmpty) {
+            _selectedItem = items.first;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showError('加载商品失败: $e');
+      }
     }
   }
 
@@ -163,16 +171,10 @@ class _PaymentPageState extends State<PaymentPage> {
     final user = provider.Provider.of<AuthProvider>(context).user;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: isDark ? LinkDropColors.zinc950 : LinkDropColors.zinc50,
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [LinkDropColors.zinc900, LinkDropColors.zinc950]
-                : [LinkDropColors.primaryLight.withOpacity(0.3), Colors.white],
-          ),
+          color: isDark ? LinkDropColors.zinc950 : LinkDropColors.zinc50,
         ),
         child: CustomScrollView(
           slivers: [
@@ -216,18 +218,12 @@ class _PaymentPageState extends State<PaymentPage> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            gradient: user?.isVipActive == true
-                                ? LinkDropColors.primaryGradient
-                                : null,
-                            color: user?.isVipActive == true
-                                ? null
-                                : LinkDropColors.textSecondary,
+                            gradient: user?.isVipActive == true ? LinkDropColors.primaryGradient : null,
+                            color: user?.isVipActive == true ? null : LinkDropColors.textSecondary,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
-                            user?.isVipActive == true
-                                ? Icons.workspace_premium
-                                : Icons.person,
+                            user?.isVipActive == true ? Icons.workspace_premium : Icons.person,
                             color: Colors.white,
                             size: 28,
                           ),
@@ -247,13 +243,9 @@ class _PaymentPageState extends State<PaymentPage> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                user?.isVipActive == true
-                                    ? 'VIP会员 · 剩余${user?.vipRemainingDays ?? 0}天'
-                                    : '普通用户',
+                                user?.isVipActive == true ? 'VIP会员 · 剩余${user?.vipRemainingDays ?? 0}天' : '普通用户',
                                 style: TextStyle(
-                                  color: user?.isVipActive == true
-                                      ? LinkDropColors.primary
-                                      : LinkDropColors.textSecondary,
+                                  color: user?.isVipActive == true ? LinkDropColors.primary : LinkDropColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -285,6 +277,40 @@ class _PaymentPageState extends State<PaymentPage> {
             SliverToBoxAdapter(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
+                  : _items.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 48,
+                            color: LinkDropColors.textSecondary.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '暂无可用套餐',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: LinkDropColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _loadItems,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('重新加载'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: LinkDropColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
                   : Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: Column(
@@ -301,9 +327,7 @@ class _PaymentPageState extends State<PaymentPage> {
                                   color: isDark ? LinkDropColors.zinc800 : Colors.white,
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: isSelected
-                                        ? LinkDropColors.primary
-                                        : Colors.transparent,
+                                    color: isSelected ? LinkDropColors.primary : Colors.transparent,
                                     width: 2,
                                   ),
                                   boxShadow: isSelected
@@ -331,9 +355,7 @@ class _PaymentPageState extends State<PaymentPage> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            item.isMembership
-                                                ? '会员特权 · 每日${item.dailyLimit}次下载'
-                                                : '下载包 · ${item.downloadCount}次下载',
+                                            item.isMembership ? '会员特权 · 每日${item.dailyLimit}次下载' : '下载包 · ${item.downloadCount}次下载',
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: LinkDropColors.textSecondary,
@@ -427,9 +449,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _isPaying || _selectedItem == null
-                        ? null
-                        : _startPayment,
+                    onPressed: _isPaying || _selectedItem == null ? null : _startPayment,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: LinkDropColors.primary,
                       foregroundColor: Colors.white,

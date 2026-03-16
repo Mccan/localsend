@@ -89,28 +89,30 @@ Future<RefenaContainer> preInit(List<String> args) async {
 
   bool startHidden = false;
   if (checkPlatformIsDesktop()) {
-    // Check if this app is already open and let it "show up".
-    // If this is the case, then exit the current instance.
+    if (!kDebugMode) {
+      // In release/profile builds, keep the original single-instance behavior.
+      final client = createRhttpClient(const Duration(milliseconds: 100), persistenceService.getSecurityContext());
 
-    final client = createRhttpClient(const Duration(milliseconds: 100), persistenceService.getSecurityContext());
-
-    try {
-      await client.post(
-        ApiRoute.show.targetRaw(
-          '127.0.0.1',
-          persistenceService.getPort(),
-          persistenceService.isHttps(),
-          peerProtocolVersion,
-        ),
-        query: {
-          'token': persistenceService.getShowToken(),
-        },
-        body: HttpBody.json({
-          'args': args,
-        }),
-      );
-      exit(0); // Another instance does exist because no error is thrown
-    } catch (_) {}
+      try {
+        await client.post(
+          ApiRoute.show.targetRaw(
+            '127.0.0.1',
+            persistenceService.getPort(),
+            persistenceService.isHttps(),
+            peerProtocolVersion,
+          ),
+          query: {
+            'token': persistenceService.getShowToken(),
+          },
+          body: HttpBody.json({
+            'args': args,
+          }),
+        );
+        exit(0); // Another instance does exist because no error is thrown
+      } catch (_) {}
+    } else {
+      _logger.info('Skipping single-instance handoff in debug mode.');
+    }
 
     // initialize tray AFTER i18n has been initialized
     try {

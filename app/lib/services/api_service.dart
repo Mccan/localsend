@@ -8,9 +8,17 @@ import 'package:localsend_app/model/payment_order.dart';
 ///
 /// 封装所有与后端 API 的通信
 class ApiService {
-  static const String _baseUrl = 'http://localhost:3000/api';
+  static String get _baseUrl {
+    if (kDebugMode) {
+      return 'http://localhost:3000/api';
+    } else {
+      return 'https://toolapi.dearlinkcn.top/api';
+    }
+  }
+
   static const String _accessTokenKey = 'linkdrop_access_token';
   static const String _refreshTokenKey = 'linkdrop_refresh_token';
+  static const String _savedUsernameKey = 'linkdrop_saved_username';
 
   late final Dio _dio;
   late final FlutterSecureStorage _storage;
@@ -21,51 +29,73 @@ class ApiService {
 
   ApiService._internal() {
     _storage = const FlutterSecureStorage();
-    _dio = Dio(BaseOptions(
-      baseUrl: _baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    ));
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: _baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 30),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+
+    // 添加日志拦截器（仅在调试模式）
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        LogInterceptor(
+          request: true,
+          requestHeader: true,
+          requestBody: true,
+          responseHeader: true,
+          responseBody: true,
+          error: true,
+          logPrint: (object) => debugPrint(object.toString()),
+        ),
+      );
+    }
 
     // 添加拦截器
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        // 自动添加 token
-        final token = await getAccessToken();
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        return handler.next(options);
-      },
-      onError: (error, handler) async {
-        // Token 过期时尝试刷新
-        if (error.response?.statusCode == 401) {
-          final refreshToken = await getRefreshToken();
-          if (refreshToken != null) {
-            try {
-              final response = await _dio.post('/auth/refresh', data: {
-                'refresh_token': refreshToken,
-              });
-              if (response.data['success'] == true) {
-                final newAccessToken = response.data['data']['accessToken'];
-                final newRefreshToken = response.data['data']['refreshToken'];
-                await setTokens(newAccessToken, newRefreshToken);
-                // 重试原请求
-                error.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken}';
-                return handler.resolve(await _dio.fetch(error.requestOptions));
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          // 自动添加 token
+          final token = await getAccessToken();
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
+        onError: (error, handler) async {
+          // Token 过期时尝试刷新
+          if (error.response?.statusCode == 401) {
+            final refreshToken = await getRefreshToken();
+            if (refreshToken != null) {
+              try {
+                final response = await _dio.post(
+                  '/auth/refresh',
+                  data: {
+                    'refresh_token': refreshToken,
+                  },
+                );
+                if (response.data['success'] == true) {
+                  final newAccessToken = response.data['data']['accessToken'];
+                  final newRefreshToken = response.data['data']['refreshToken'];
+                  await setTokens(newAccessToken, newRefreshToken);
+                  // 重试原请求
+                  error.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken}';
+                  return handler.resolve(await _dio.fetch(error.requestOptions));
+                }
+              } catch (e) {
+                // 刷新失败，清除 token
+                await clearTokens();
               }
-            } catch (e) {
-              // 刷新失败，清除 token
-              await clearTokens();
             }
           }
-        }
-        return handler.next(error);
-      },
-    ));
+          return handler.next(error);
+        },
+      ),
+    );
   }
 
   /// 设置基础 URL
@@ -111,20 +141,52 @@ class ApiService {
     }
   }
 
+  // ==================== 保存的用户名 ====================
+
+  Future<String?> getSavedUsername() async {
+    try {
+      return await _storage.read(key: _savedUsernameKey);
+    } catch (e) {
+      debugPrint('读取保存的用户名失败: $e');
+      return null;
+    }
+  }
+
+  Future<void> setSavedUsername(String username) async {
+    try {
+      await _storage.write(key: _savedUsernameKey, value: username);
+    } catch (e) {
+      debugPrint('保存用户名失败: $e');
+    }
+  }
+
+  Future<void> clearSavedUsername() async {
+    try {
+      await _storage.delete(key: _savedUsernameKey);
+    } catch (e) {
+      debugPrint('清除保存的用户名失败: $e');
+    }
+  }
+
   // ==================== 用户认证 ====================
 
   /// 用户登录
   Future<LoginResult> login(String username, String password, {bool rememberMe = false}) async {
     try {
-      final response = await _dio.post('/auth/login', data: {
-        'username': username,
-        'password': password,
-        'remember_me': rememberMe,
-      });
+      final response = await _dio.post(
+        '/auth/login',
+        data: {
+          'username': username,
+          'password': password,
+          'remember_me': rememberMe,
+        },
+      );
 
       if (response.data['success'] == true) {
         final data = response.data['data'];
         await setTokens(data['accessToken'], data['refreshToken']);
+        // 保存用户名以便下次自动填充
+        await setSavedUsername(username);
         return LoginResult(
           success: true,
           user: User.fromJson(data),
@@ -153,14 +215,17 @@ class ApiService {
   /// 用户注册
   Future<LoginResult> register(String username, String password, {String? inviteCode}) async {
     try {
-      final response = await _dio.post('/auth/register', data: {
-        'username': username,
-        'password': password,
-        'confirmPassword': password,
-        'securityQuestion': '默认问题',
-        'securityAnswer': 'default',
-        if (inviteCode != null) 'invite_code': inviteCode,
-      });
+      final response = await _dio.post(
+        '/auth/register',
+        data: {
+          'username': username,
+          'password': password,
+          'confirmPassword': password,
+          'securityQuestion': '默认问题',
+          'securityAnswer': 'default',
+          if (inviteCode != null) 'invite_code': inviteCode,
+        },
+      );
 
       if (response.data['success'] == true) {
         final data = response.data['data'];
@@ -237,9 +302,12 @@ class ApiService {
   /// 创建充值订单
   Future<PaymentOrder?> createRechargeOrder(int itemId) async {
     try {
-      final response = await _dio.post('/recharge/orders', data: {
-        'item_id': itemId,
-      });
+      final response = await _dio.post(
+        '/recharge/orders',
+        data: {
+          'item_id': itemId,
+        },
+      );
 
       if (response.data['success'] == true) {
         return PaymentOrder.fromJson(response.data['data']);
@@ -254,9 +322,12 @@ class ApiService {
   /// 创建支付（获取二维码）
   Future<PaymentOrder?> createPayment(int orderId) async {
     try {
-      final response = await _dio.post('/payment/alipay/facetoface/create', data: {
-        'order_id': orderId,
-      });
+      final response = await _dio.post(
+        '/payment/alipay/facetoface/create',
+        data: {
+          'order_id': orderId,
+        },
+      );
 
       if (response.data['success'] == true) {
         return PaymentOrder.fromJson(response.data['data']);

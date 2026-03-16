@@ -201,6 +201,15 @@ class _SettingsPageState extends State<SettingsPage> {
                           );
                           if (result == true) {
                             setState(() {});
+                            // 登录成功后自动跳转到支付页面
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const PaymentPage(),
+                                fullscreenDialog: true,
+                              ),
+                            );
+                            await provider.Provider.of<AuthProvider>(context, listen: false).refreshUser();
+                            setState(() {});
                           }
                         },
                       ),

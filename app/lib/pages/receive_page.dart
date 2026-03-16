@@ -13,6 +13,195 @@ import 'package:localsend_app/util/ip_helper.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
+/// 设备信息与热点提示整合卡片
+class _DeviceInfoCard extends StatelessWidget {
+  final bool isDark;
+  final String alias;
+  final bool isAliasModified;
+  final String? ip;
+  final String? port;
+  final VoidCallback onTapAlias;
+
+  const _DeviceInfoCard({
+    required this.isDark,
+    required this.alias,
+    required this.isAliasModified,
+    this.ip,
+    this.port,
+    required this.onTapAlias,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark ? [const Color(0xFF2D2418), const Color(0xFF1A1510)] : [const Color(0xFFFDF8F3), const Color(0xFFF5EDE4)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF3D3220) : const Color(0xFFE8DDD0),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.3) : const Color(0x1AD4A574),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 第一行：设备名称 + 热点标签
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: LinkDropColors.primary.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.wifi_tethering_rounded,
+                  color: LinkDropColors.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: InkWell(
+                  onTap: onTapAlias,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _formatDisplayName(alias, isAliasModified, ip),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : LinkDropColors.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                ip != null ? '$ip:${port ?? '-'}' : '等待连接...',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? const Color(0xFF999999) : const Color(0xFF888888),
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.edit,
+                          size: 16,
+                          color: LinkDropColors.textSecondary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // 第二行：三步流程
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A1510) : const Color(0xFFFDFBF8),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark ? const Color(0xFF2D2418) : const Color(0xFFF0E8E0),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildStepItem('1', '开热点', isDark),
+                ),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 14,
+                  color: LinkDropColors.primary.withOpacity(0.5),
+                ),
+                Expanded(
+                  child: _buildStepItem('2', '连热点', isDark),
+                ),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 14,
+                  color: LinkDropColors.primary.withOpacity(0.5),
+                ),
+                Expanded(
+                  child: _buildStepItem('3', '传文件', isDark),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDisplayName(String alias, bool isAliasModified, String? ip) {
+    if (isAliasModified || ip == null) {
+      return alias;
+    }
+    return '${ip.visualId}（我）';
+  }
+
+  Widget _buildStepItem(String number, String label, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: LinkDropColors.primary.withOpacity(0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: LinkDropColors.primary,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: isDark ? const Color(0xFFAAAAAA) : const Color(0xFF666666),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// 接收页面
 ///
 /// 显示接收文件的状态和本地IP地址
@@ -29,13 +218,6 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
   int _dotCount = 1;
   Timer? _timer;
   Timer? _resetTimer;
-
-  String _formatDisplayName(String alias, bool isAliasModified, String? ip) {
-    if (isAliasModified || ip == null) {
-      return alias;
-    }
-    return '${ip.visualId}（我）';
-  }
 
   @override
   void initState() {
@@ -75,18 +257,37 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
 
   String _getStatusText(SessionStatus? status) {
     if (status == null) {
-      return '${t.receiveTab.readyToReceive}${'.' * _dotCount}';
+      return t.receiveTab.readyToReceive;
     }
 
     switch (status) {
       case SessionStatus.sending:
-        return '${t.receiveTab.receiving}${'.' * _dotCount}';
+        return t.receiveTab.receiving;
       case SessionStatus.finished:
       case SessionStatus.finishedWithErrors:
         return t.receiveTab.received;
       default:
-        return '${t.receiveTab.readyToReceive}${'.' * _dotCount}';
+        return t.receiveTab.readyToReceive;
     }
+  }
+
+  /// 构建带动画的点
+  Widget _buildAnimatedDot(int index, bool isDark) {
+    // 计算当前点的动画进度
+    // 三个点交替亮起，形成追逐效果
+    final animationProgress = (_dotCount + index) % 3;
+    final isActive = animationProgress == 0;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: 6,
+      height: 6,
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      decoration: BoxDecoration(
+        color: isActive ? LinkDropColors.primary : (isDark ? Colors.white : LinkDropColors.textPrimary).withOpacity(0.3),
+        shape: BoxShape.circle,
+      ),
+    );
   }
 
   @override
@@ -146,41 +347,21 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                           fontSize: 14,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      // 高级信息直接显示
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _InfoItem(
-                            label: t.receiveTab.infoBox.alias,
-                            value: _formatDisplayName(settings.alias, settings.isAliasModified, vm.localIps.firstOrNull),
-                            onTap: () => _showAliasDialog(context, settings, settingsService),
-                            isDark: isDark,
-                          ),
-                          if (vm.localIps.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: _InfoItem(
-                                label: t.receiveTab.infoBox.ip,
-                                value: vm.localIps.first,
-                                isDark: isDark,
-                              ),
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: _InfoItem(
-                              label: t.receiveTab.infoBox.port,
-                              value: vm.serverState?.port.toString() ?? '-',
-                              isDark: isDark,
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
               ],
             ),
+          ),
+
+          // 设备信息与热点提示整合卡片
+          _DeviceInfoCard(
+            isDark: isDark,
+            alias: settings.alias,
+            isAliasModified: settings.isAliasModified,
+            ip: vm.localIps.firstOrNull,
+            port: vm.serverState?.port.toString(),
+            onTapAlias: () => _showAliasDialog(context, settings, settingsService),
           ),
 
           // 主内容区域
@@ -217,44 +398,32 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                     ),
                   ),
                   const SizedBox(height: 48),
-                  Text(
-                    '${t.receiveTab.readyToReceive}${'.' * _dotCount}',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : LinkDropColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 别名显示
-                  InkWell(
-                    onTap: () {
-                      _showAliasDialog(context, settings, settingsService);
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.wifi, size: 16, color: LinkDropColors.textSecondary),
-                          const SizedBox(width: 8),
-                          Text(
-                            _formatDisplayName(settings.alias, settings.isAliasModified, vm.localIps.firstOrNull),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: LinkDropColors.textSecondary,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(Icons.edit, size: 14, color: LinkDropColors.textSecondary),
-                        ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        t.receiveTab.readyToReceive,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : LinkDropColors.textPrimary,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      // 交替追逐动画的三个点
+                      SizedBox(
+                        width: 24,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            _buildAnimatedDot(0, isDark),
+                            _buildAnimatedDot(1, isDark),
+                            _buildAnimatedDot(2, isDark),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-
                   const SizedBox(height: 32),
 
                   // 自动保存开关
@@ -330,55 +499,6 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
             },
             child: Text(t.general.save),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final VoidCallback? onTap;
-  final bool isDark;
-
-  const _InfoItem({
-    required this.label,
-    required this.value,
-    this.onTap,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$label: ',
-            style: TextStyle(
-              color: LinkDropColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-          SelectableText(
-            value,
-            style: TextStyle(
-              color: isDark ? Colors.white : LinkDropColors.textPrimary,
-              fontSize: 12,
-              fontFamily: 'monospace',
-            ),
-          ),
-          if (onTap != null) ...[
-            const SizedBox(width: 4),
-            Icon(
-              Icons.edit,
-              size: 12,
-              color: LinkDropColors.textSecondary,
-            ),
-          ],
         ],
       ),
     );

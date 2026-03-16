@@ -159,6 +159,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 获取保存的用户名
+  Future<String?> getSavedUsername() async {
+    return await _apiService.getSavedUsername();
+  }
+
   /// 刷新用户信息
   Future<void> refreshUser() async {
     if (!_state.isAuthenticated) return;

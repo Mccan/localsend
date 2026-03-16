@@ -23,6 +23,22 @@ class _LoginPageState extends State<LoginPage> {
   final _inviteCodeController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedUsername();
+  }
+
+  Future<void> _loadSavedUsername() async {
+    final authProvider = provider.Provider.of<AuthProvider>(context, listen: false);
+    final savedUsername = await authProvider.getSavedUsername();
+    if (savedUsername != null && savedUsername.isNotEmpty) {
+      setState(() {
+        _usernameController.text = savedUsername;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
@@ -40,9 +56,7 @@ class _LoginPageState extends State<LoginPage> {
       success = await authProvider.register(
         _usernameController.text.trim(),
         _passwordController.text,
-        inviteCode: _inviteCodeController.text.trim().isNotEmpty
-            ? _inviteCodeController.text.trim()
-            : null,
+        inviteCode: _inviteCodeController.text.trim().isNotEmpty ? _inviteCodeController.text.trim() : null,
       );
     } else {
       success = await authProvider.login(
@@ -63,16 +77,10 @@ class _LoginPageState extends State<LoginPage> {
     final authProvider = provider.Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: isDark ? LinkDropColors.zinc950 : LinkDropColors.zinc50,
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [LinkDropColors.zinc900, LinkDropColors.zinc950]
-                : [LinkDropColors.primaryLight.withOpacity(0.3), Colors.white],
-          ),
+          color: isDark ? LinkDropColors.zinc950 : LinkDropColors.zinc50,
         ),
         child: Center(
           child: SingleChildScrollView(
@@ -119,9 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          _isRegisterMode
-                              ? '注册新账户开始使用'
-                              : '登录您的 LinkDrop 账户',
+                          _isRegisterMode ? '注册新账户开始使用' : '登录您的 LinkDrop 账户',
                           style: TextStyle(
                             fontSize: 14,
                             color: LinkDropColors.textSecondary,
@@ -195,6 +201,7 @@ class _LoginPageState extends State<LoginPage> {
                             }
                             return null;
                           },
+                          onFieldSubmitted: (_) => _handleSubmit(),
                         ),
                         const SizedBox(height: 16),
 

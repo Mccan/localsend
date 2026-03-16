@@ -158,6 +158,9 @@ class _SendPageState extends State<SendPage> with Refena {
                                   fontSize: 14,
                                 ),
                               ),
+                              const SizedBox(height: 16),
+                              // 热点提示
+                              _buildHotspotTip(isDark),
                             ],
                           ),
                         )
@@ -210,8 +213,8 @@ class _SendPageState extends State<SendPage> with Refena {
                     color: _dragAndDropIndicator
                         ? LinkDropColors.primary
                         : isDark
-                            ? LinkDropColors.borderDark
-                            : LinkDropColors.borderLight,
+                        ? LinkDropColors.borderDark
+                        : LinkDropColors.borderLight,
                     style: BorderStyle.solid,
                     width: _dragAndDropIndicator ? 3 : 2,
                   ),
@@ -476,6 +479,42 @@ class _SendPageState extends State<SendPage> with Refena {
       PickFileAction(
         option: option,
         context: context,
+      ),
+    );
+  }
+
+  /// 构建热点提示
+  Widget _buildHotspotTip(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2D2418) : const Color(0xFFFDF8F3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? const Color(0xFF3D3220) : const Color(0xFFE8DDD0),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.wifi_tethering_rounded,
+            size: 18,
+            color: LinkDropColors.primary,
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              '没搜到设备？开启手机热点，对方连接后即可传输',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? const Color(0xFFAAAAAA) : const Color(0xFF666666),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }
