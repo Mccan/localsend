@@ -18,6 +18,7 @@ import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/file_size_helper.dart';
 import 'package:localsend_app/util/native/cross_file_converters.dart';
 import 'package:localsend_app/util/native/file_picker.dart';
+import 'package:localsend_app/util/permission_checker.dart';
 import 'package:localsend_app/widget/dialogs/send_mode_help_dialog.dart';
 import 'package:localsend_app/widget/file_thumbnail.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -34,9 +35,13 @@ class SendPage extends StatefulWidget {
   State<SendPage> createState() => _SendPageState();
 }
 
-class _SendPageState extends State<SendPage> with Refena {
+class _SendPageState extends State<SendPage> with Refena, PermissionControlMixin {
   bool _dragAndDropIndicator = false;
   bool _isScanning = false;
+
+  /// 发送页需要会员权限（包含登录检查）
+  @override
+  PermissionStatus get requiredPermission => PermissionStatus.requiresMembership;
 
   Future<void> _handleScan(BuildContext context) async {
     setState(() {
@@ -58,6 +63,16 @@ class _SendPageState extends State<SendPage> with Refena {
 
   @override
   Widget build(BuildContext context) {
+    // 权限检查中显示加载界面
+    if (isCheckingPermission) {
+      return buildPermissionCheckingWidget();
+    }
+
+    // 无权限显示提示界面
+    if (!hasPermission) {
+      return buildNoPermissionWidget();
+    }
+
     final vm = context.watch(sendTabVmProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 

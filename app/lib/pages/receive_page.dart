@@ -10,6 +10,7 @@ import 'package:localsend_app/pages/widget/pulse_ripple.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/ip_helper.dart';
+import 'package:localsend_app/util/permission_checker.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
@@ -213,11 +214,15 @@ class ReceivePage extends StatefulWidget {
   State<ReceivePage> createState() => _ReceivePageState();
 }
 
-class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStateMixin {
+class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStateMixin, PermissionControlMixin {
   late AnimationController _animationController;
   int _dotCount = 1;
   Timer? _timer;
   Timer? _resetTimer;
+
+  /// 接收页需要登录权限
+  @override
+  PermissionStatus get requiredPermission => PermissionStatus.requiresLogin;
 
   @override
   void initState() {
@@ -292,6 +297,16 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    // 权限检查中显示加载界面
+    if (isCheckingPermission) {
+      return buildPermissionCheckingWidget();
+    }
+
+    // 无权限显示提示界面
+    if (!hasPermission) {
+      return buildNoPermissionWidget();
+    }
+
     final vm = context.watch(receiveTabVmProvider);
     final settings = context.watch(settingsProvider);
     final settingsService = context.notifier(settingsProvider);
