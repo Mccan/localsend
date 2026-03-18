@@ -1,11 +1,11 @@
 import 'package:common/util/sleep.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/model/state/server/server_state.dart';
-import 'package:localsend_app/provider/local_ip_provider.dart';
-import 'package:localsend_app/provider/network/server/server_provider.dart';
-import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/widget/dialogs/quick_save_from_favorites_notice.dart';
-import 'package:localsend_app/widget/dialogs/quick_save_notice.dart';
+import 'package:linkdrop_app/model/state/server/server_state.dart';
+import 'package:linkdrop_app/provider/local_ip_provider.dart';
+import 'package:linkdrop_app/provider/network/server/server_provider.dart';
+import 'package:linkdrop_app/provider/settings_provider.dart';
+import 'package:linkdrop_app/widget/dialogs/quick_save_from_favorites_notice.dart';
+import 'package:linkdrop_app/widget/dialogs/quick_save_notice.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 final _showAdvancedProvider = StateProvider<bool>((ref) => false, debugLabel: '_showAdvancedProvider');

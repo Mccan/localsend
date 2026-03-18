@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/widget/glass/glass_dialog.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
+import 'package:linkdrop_app/widget/glass/glass_dialog.dart';
 import 'package:routerino/routerino.dart';
 
 class ErrorDialog extends StatelessWidget {

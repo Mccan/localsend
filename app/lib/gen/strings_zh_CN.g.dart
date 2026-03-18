@@ -42,7 +42,7 @@ class TranslationsZhCn extends Translations {
   @override
   String get locale => '简体中文';
   @override
-  String get appName => '链传';
+  String get appName => 'LinkDrop';
   @override
   late final _TranslationsGeneralZhCn general = _TranslationsGeneralZhCn._(_root);
   @override
@@ -445,7 +445,7 @@ class _TranslationsWebSharePageZhCn extends TranslationsWebSharePageEn {
   @override
   String pinHint({required Object pin}) => 'PIN 为 “${pin}”';
   @override
-  String get encryptionHint => 'LocalSend 使用自签名证书。您需要在浏览器中允许它。';
+  String get encryptionHint => 'LinkDrop 使用自签名证书。您需要在浏览器中允许它。';
   @override
   String pendingRequests({required Object n}) => '待处理请求：${n}';
 }
@@ -458,14 +458,11 @@ class _TranslationsAboutPageZhCn extends TranslationsAboutPageEn {
 
   // Translations
   @override
-  String get title => '关于 LocalSend';
+  String get title => '关于 LinkDrop';
   @override
-  List<String> get description => [
-    'LocalSend 是一款免费的开源应用程序，可让您通过本地网络与附近的设备安全地分享文件和信息，而无需互联网连接。',
-    '本程序可在 Android、iOS、macOS、Windows 和 Linux 上使用。您可以在官方主页找到所有下载选项。',
-  ];
+  List<String> get description => ['LinkDrop 是一款跨平台局域网传输工具，基于 LocalSend 开发。', '官方网站：https://linkdrop.dearlinkcn.top/'];
   @override
-  String get author => '作者';
+  String get author => 'LeLiu';
   @override
   String get contributors => '贡献者';
   @override
@@ -482,9 +479,9 @@ class _TranslationsDonationPageZhCn extends TranslationsDonationPageEn {
 
   // Translations
   @override
-  String get title => '捐赠';
+  String get title => '开通会员';
   @override
-  String get info => 'LocalSend 免费、开源、无广告。如果您喜欢这款应用程序，可以捐款支持开发。';
+  String get info => 'LinkDrop 提供会员服务，开通后可享受更多高级功能。';
   @override
   String donate({required Object amount}) => '捐款 ${amount}';
   @override
@@ -668,7 +665,7 @@ class _TranslationsTrayZhCn extends TranslationsTrayEn {
   @override
   String get open => _root.general.open;
   @override
-  String get close => '退出 LocalSend';
+  String get close => '退出 LinkDrop';
   @override
   String get closeWindows => '退出';
 }
@@ -773,7 +770,7 @@ class _TranslationsNetworkInterfacesPageZhCn extends TranslationsNetworkInterfac
   @override
   String get title => '网络接口';
   @override
-  String get info => '默认情况下，LocalSend 使用所有可用的网络接口。您可以在此处排除不需要的网络接口。您需要重新启动服务器以应用更改。';
+  String get info => '默认情况下，LinkDrop 使用所有可用的网络接口。您可以在此处排除不需要的网络接口。您需要重新启动服务器以应用更改。';
   @override
   String get preview => '预览';
   @override

@@ -1,6 +1,6 @@
 {
   "locale": "简体中文",
-  "appName": "链传",
+  "appName": "LinkDrop",
   "general": {
     "accept": "接受",
     "accepted": "已接受",
@@ -264,23 +264,23 @@
     "autoAccept": "自动接受请求",
     "requirePin": "启用 PIN 密码",
     "pinHint": "PIN 为 “{pin}”",
-    "encryptionHint": "LocalSend 使用自签名证书。您需要在浏览器中允许它。",
+    "encryptionHint": "LinkDrop 使用自签名证书。您需要在浏览器中允许它。",
     "pendingRequests": "待处理请求：{n}"
   },
   "aboutPage": {
-    "title": "关于 LocalSend",
+    "title": "关于 LinkDrop",
     "description": [
-      "LocalSend 是一款免费的开源应用程序，可让您通过本地网络与附近的设备安全地分享文件和信息，而无需互联网连接。",
-      "本程序可在 Android、iOS、macOS、Windows 和 Linux 上使用。您可以在官方主页找到所有下载选项。"
+      "LinkDrop 是一款跨平台局域网传输工具，基于 LocalSend 开发。",
+      "官方网站：https://linkdrop.dearlinkcn.top/"
     ],
-    "author": "作者",
+    "author": "LeLiu",
     "contributors": "贡献者",
     "packagers": "打包者",
     "translators": "翻译者"
   },
   "donationPage": {
-    "title": "捐赠",
-    "info": "LocalSend 免费、开源、无广告。如果您喜欢这款应用程序，可以捐款支持开发。",
+    "title": "开通会员",
+    "info": "LinkDrop 提供会员服务，开通后可享受更多高级功能。",
     "donate": "捐款 {amount}",
     "thanks": "非常感谢您的支持！",
     "restore": "恢复购买"
@@ -487,7 +487,7 @@
   "tray": {
     "@info": "Apple Guidelines are very strict about the \"close\" wording.",
     "open": "@:general.open",
-    "close": "退出 LocalSend",
+    "close": "退出 LinkDrop",
     "closeWindows": "退出"
   },
   "web": {
@@ -533,7 +533,7 @@
   },
   "networkInterfacesPage": {
     "title": "网络接口",
-    "info": "默认情况下，LocalSend 使用所有可用的网络接口。您可以在此处排除不需要的网络接口。您需要重新启动服务器以应用更改。",
+    "info": "默认情况下，LinkDrop 使用所有可用的网络接口。您可以在此处排除不需要的网络接口。您需要重新启动服务器以应用更改。",
     "preview": "预览",
     "whitelist": "白名单",
     "blacklist": "黑名单"

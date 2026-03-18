@@ -1,16 +1,17 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:common/model/session_status.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/state/settings_state.dart';
-import 'package:localsend_app/pages/receive_history_page.dart';
-import 'package:localsend_app/pages/tabs/receive_tab_vm.dart';
-import 'package:localsend_app/pages/widget/pulse_ripple.dart';
-import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
-import 'package:localsend_app/util/ip_helper.dart';
-import 'package:localsend_app/util/permission_checker.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
+import 'package:linkdrop_app/model/state/settings_state.dart';
+import 'package:linkdrop_app/pages/receive_history_page.dart';
+import 'package:linkdrop_app/pages/tabs/receive_tab_vm.dart';
+import 'package:linkdrop_app/pages/widget/pulse_ripple.dart';
+import 'package:linkdrop_app/provider/settings_provider.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/util/ip_helper.dart';
+import 'package:linkdrop_app/util/permission_checker.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
@@ -122,39 +123,117 @@ class _DeviceInfoCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // 第二行：三步流程
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A1510) : const Color(0xFFFDFBF8),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isDark ? const Color(0xFF2D2418) : const Color(0xFFF0E8E0),
+          // 第二行：两种连接方式
+          Row(
+            children: [
+              // 方式一：热点连接
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1A1510) : const Color(0xFFFDFBF8),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF2D2418) : const Color(0xFFF0E8E0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.wifi_tethering_rounded,
+                            size: 14,
+                            color: LinkDropColors.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '热点连接',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : LinkDropColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          _buildMiniStep('1', '开热点', isDark),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 10,
+                              color: LinkDropColors.primary.withOpacity(0.4),
+                            ),
+                          ),
+                          _buildMiniStep('2', '连热点', isDark),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 10,
+                              color: LinkDropColors.primary.withOpacity(0.4),
+                            ),
+                          ),
+                          _buildMiniStep('3', '传文件', isDark),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildStepItem('1', '开热点', isDark),
+              const SizedBox(width: 8),
+              // 方式二：局域网连接
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1A1510) : const Color(0xFFFDFBF8),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF2D2418) : const Color(0xFFF0E8E0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.wifi_rounded,
+                            size: 14,
+                            color: LinkDropColors.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '局域网连接',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : LinkDropColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '设备连接同一WiFi即可传输',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark ? const Color(0xFF999999) : const Color(0xFF666666),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 14,
-                  color: LinkDropColors.primary.withOpacity(0.5),
-                ),
-                Expanded(
-                  child: _buildStepItem('2', '连热点', isDark),
-                ),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 14,
-                  color: LinkDropColors.primary.withOpacity(0.5),
-                ),
-                Expanded(
-                  child: _buildStepItem('3', '传文件', isDark),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -166,6 +245,41 @@ class _DeviceInfoCard extends StatelessWidget {
       return alias;
     }
     return '${ip.visualId}（我）';
+  }
+
+  /// 构建迷你步骤指示器（用于热点连接的小步骤）
+  Widget _buildMiniStep(String number, String label, bool isDark) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: LinkDropColors.primary.withOpacity(0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.w600,
+                color: LinkDropColors.primary,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            color: isDark ? const Color(0xFFAAAAAA) : const Color(0xFF666666),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildStepItem(String number, String label, bool isDark) {
@@ -276,21 +390,37 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
     }
   }
 
-  /// 构建带动画的点
+  /// 构建优雅的波浪式加载动画点
+  ///
+  /// 使用正弦波控制点的缩放和透明度，形成流畅的波浪效果
   Widget _buildAnimatedDot(int index, bool isDark) {
-    // 计算当前点的动画进度
-    // 三个点交替亮起，形成追逐效果
-    final animationProgress = (_dotCount + index) % 3;
-    final isActive = animationProgress == 0;
+    // 使用正弦波计算动画进度，每个点有 120 度的相位差
+    final phase = (index * 120) * (3.14159 / 180); // 转换为弧度
+    final time = (_dotCount - 1) * 120 * (3.14159 / 180);
+
+    // 计算波浪效果：缩放 0.6 ~ 1.0，透明度 0.3 ~ 1.0
+    final wave = (1 + math.sin(time + phase)) / 2;
+    final scale = 0.6 + (wave * 0.4);
+    final opacity = 0.3 + (wave * 0.7);
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: 6,
-      height: 6,
-      margin: const EdgeInsets.symmetric(horizontal: 1),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: 8 * scale,
+      height: 8 * scale,
+      margin: const EdgeInsets.symmetric(horizontal: 3),
       decoration: BoxDecoration(
-        color: isActive ? LinkDropColors.primary : (isDark ? Colors.white : LinkDropColors.textPrimary).withOpacity(0.3),
+        color: LinkDropColors.primary.withOpacity(opacity),
         shape: BoxShape.circle,
+        boxShadow: wave > 0.7
+            ? [
+                BoxShadow(
+                  color: LinkDropColors.primary.withOpacity(0.4 * wave),
+                  blurRadius: 6,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
       ),
     );
   }
@@ -425,17 +555,14 @@ class _ReceivePageState extends State<ReceivePage> with SingleTickerProviderStat
                         ),
                       ),
                       const SizedBox(width: 4),
-                      // 交替追逐动画的三个点
-                      SizedBox(
-                        width: 24,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            _buildAnimatedDot(0, isDark),
-                            _buildAnimatedDot(1, isDark),
-                            _buildAnimatedDot(2, isDark),
-                          ],
-                        ),
+                      // 波浪式加载动画的三个点
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          _buildAnimatedDot(0, isDark),
+                          _buildAnimatedDot(1, isDark),
+                          _buildAnimatedDot(2, isDark),
+                        ],
                       ),
                     ],
                   ),

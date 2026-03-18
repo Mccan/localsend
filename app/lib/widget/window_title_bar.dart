@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// 自定义窗口标题栏

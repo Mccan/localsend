@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 /// 二维码显示组件

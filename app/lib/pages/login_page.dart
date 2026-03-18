@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/provider/auth_provider.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/provider/auth_provider.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
 import 'package:provider/provider.dart' as provider;
 
 /// 登录页面

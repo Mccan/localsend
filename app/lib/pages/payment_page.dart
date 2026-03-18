@@ -1,32 +1,44 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:localsend_app/model/payment_order.dart';
-import 'package:localsend_app/provider/auth_provider.dart';
-import 'package:localsend_app/services/api_service.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
-import 'package:localsend_app/widget/qr_code_display.dart';
+import 'package:linkdrop_app/model/payment_order.dart' show PaymentOrder, PaymentStatus;
+import 'package:linkdrop_app/provider/auth_provider.dart';
+import 'package:linkdrop_app/services/api_service.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/widget/qr_code_display.dart';
 import 'package:provider/provider.dart' as provider;
 
 /// 支付页面
 ///
 /// 提供会员套餐选择和支付宝扫码支付功能
+enum _PaymentOverlayKind {
+  qr,
+  success,
+  status,
+}
+
 class PaymentPage extends StatefulWidget {
-  const PaymentPage({super.key});
+  final PaymentApi apiService;
+
+  PaymentPage({super.key, PaymentApi? apiService}) : apiService = apiService ?? ApiService();
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  final ApiService _apiService = ApiService();
   List<RechargeItem> _globalItems = []; // 大会员套餐
   List<RechargeItem> _projectItems = []; // 子会员套餐
   RechargeItem? _selectedItem;
   PaymentOrder? _currentOrder;
   bool _isLoading = true;
   bool _isPaying = false;
+  _PaymentOverlayKind? _overlayKind;
+  String? _overlayTitle;
+  String? _overlayMessage;
   Timer? _pollTimer;
+  int _pollRetryCount = 0;
+  static const int _maxPollRetries = 72; // 72次 * 3秒 = 216秒 = 3.6分钟超时
 
   // LinkDrop 项目ID
   static const int _linkdropProjectId = 1;
@@ -42,6 +54,8 @@ class _PaymentPageState extends State<PaymentPage> {
     _pollTimer?.cancel();
     super.dispose();
   }
+
+  PaymentApi get _apiService => widget.apiService;
 
   Future<void> _loadItems() async {
     setState(() => _isLoading = true);
@@ -103,6 +117,7 @@ class _PaymentPageState extends State<PaymentPage> {
       final order = await _apiService.createRechargeOrder(_selectedItem!.id);
       if (order == null) {
         _showError('创建订单失败');
+        setState(() => _isPaying = false);
         return;
       }
 
@@ -110,107 +125,99 @@ class _PaymentPageState extends State<PaymentPage> {
       final paymentOrder = await _apiService.createPayment(int.parse(order.orderId));
       if (paymentOrder == null || paymentOrder.qrCode == null) {
         _showError('创建支付失败');
+        setState(() => _isPaying = false);
         return;
       }
 
       setState(() {
         _currentOrder = paymentOrder;
+        _overlayKind = _PaymentOverlayKind.qr;
+        _overlayTitle = null;
+        _overlayMessage = null;
+        _isPaying = false;
       });
-
-      // 3. 显示支付弹窗
-      if (mounted) {
-        _showPaymentDialog(paymentOrder);
-      }
 
       // 4. 开始轮询支付状态
       _startPolling(paymentOrder.orderNo);
     } catch (e) {
       _showError('支付失败: $e');
-    } finally {
-      setState(() => _isPaying = false);
+      if (mounted) {
+        setState(() => _isPaying = false);
+      }
     }
   }
 
-  /// 显示支付二维码弹窗
-  void _showPaymentDialog(PaymentOrder paymentOrder) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          contentPadding: const EdgeInsets.all(24),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                '扫码支付',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '请使用支付宝扫描下方二维码完成支付',
-                style: TextStyle(color: LinkDropColors.textSecondary, fontSize: 14),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: QRCodeDisplay(
-                  qrCode: paymentOrder.qrCode!,
-                  size: 200,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '支付金额：¥${paymentOrder.amount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: LinkDropColors.primary,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 8),
-                  Text('等待支付中...'),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _pollTimer?.cancel();
-                Navigator.of(context).pop();
-              },
-              child: const Text('取消支付'),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _closeOverlay() {
+    if (!mounted || _overlayKind == null) {
+      return;
+    }
+
+    setState(() {
+      _overlayKind = null;
+      _overlayTitle = null;
+      _overlayMessage = null;
+    });
+  }
+
+  void _showStatusOverlay(String title, String message) {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _overlayKind = _PaymentOverlayKind.status;
+      _overlayTitle = title;
+      _overlayMessage = message;
+    });
+  }
+
+  void _showSuccessOverlay() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _overlayKind = _PaymentOverlayKind.success;
+      _overlayTitle = null;
+      _overlayMessage = null;
+    });
   }
 
   void _startPolling(String orderNo) {
     _pollTimer?.cancel();
+    _pollRetryCount = 0;
+
     _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      _pollRetryCount++;
+
       final order = await _apiService.queryPaymentStatus(orderNo);
-      if (order != null && order.isPaid) {
+
+      if (order == null) {
+        // 订单不存在，停止轮询
+        timer.cancel();
+        _onPaymentTimeout(orderNo, isNotFound: true);
+        return;
+      }
+
+      // 检查支付状态
+      if (order.isPaid) {
         timer.cancel();
         _onPaymentSuccess();
+        return;
+      }
+
+      // 检查订单是否已过期/关闭
+      if (order.status == PaymentStatus.expired || order.status == PaymentStatus.closed || order.status == PaymentStatus.cancelled) {
+        timer.cancel();
+        _onPaymentExpired(order);
+        return;
+      }
+
+      // 检查是否超过最大重试次数
+      if (_pollRetryCount >= _maxPollRetries) {
+        timer.cancel();
+        _onPaymentTimeout(orderNo);
+        return;
       }
     });
   }
@@ -220,52 +227,24 @@ class _PaymentPageState extends State<PaymentPage> {
     provider.Provider.of<AuthProvider>(context, listen: false).refreshUser();
 
     if (mounted) {
-      // 关闭支付弹窗（如果还在显示）
-      Navigator.of(context, rootNavigator: true).pop();
+      _showSuccessOverlay();
+    }
+  }
 
-      // 显示支付成功弹窗
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check, color: Colors.white, size: 48),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                '支付成功',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text('您的会员权益已生效'),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: LinkDropColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('完成'),
-              ),
-            ],
-          ),
-        ),
-      );
+  /// 订单过期处理
+  void _onPaymentExpired(PaymentOrder order) {
+    if (mounted) {
+      _showStatusOverlay('订单已过期', '订单 ${order.orderNo} 已${order.status.label}，请重新创建订单');
+    }
+  }
+
+  /// 支付超时处理
+  void _onPaymentTimeout(String orderNo, {bool isNotFound = false}) {
+    if (mounted) {
+      final title = isNotFound ? '订单不存在' : '支付查询超时';
+      final content = isNotFound ? '订单可能已过期或被取消，请重新创建订单' : '订单号：$orderNo\n\n请打开支付宝检查是否已支付，若已支付请联系客服';
+
+      _showStatusOverlay(title, content);
     }
   }
 
@@ -375,6 +354,183 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
+  Widget _buildOverlay(bool isDark) {
+    final overlayKind = _overlayKind;
+    if (overlayKind == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned.fill(
+      child: LayoutBuilder(
+        builder: (context, constraints) => ColoredBox(
+          color: Colors.black.withValues(alpha: 0.45),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 440,
+                maxHeight: constraints.maxHeight - 48,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: isDark ? LinkDropColors.zinc900 : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 24,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    child: switch (overlayKind) {
+                      _PaymentOverlayKind.qr => _buildQrOverlayContent(),
+                      _PaymentOverlayKind.success => _buildSuccessOverlayContent(),
+                      _PaymentOverlayKind.status => _buildStatusOverlayContent(),
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQrOverlayContent() {
+    final paymentOrder = _currentOrder;
+    if (paymentOrder == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      key: const ValueKey('payment-qr-overlay'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          '扫码支付',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '请使用支付宝扫描下方二维码完成支付',
+          style: TextStyle(color: LinkDropColors.textSecondary, fontSize: 14),
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: QRCodeDisplay(
+            qrCode: paymentOrder.qrCode!,
+            size: 200,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          '支付金额：¥${paymentOrder.amount.toStringAsFixed(2)}',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: LinkDropColors.primary,
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 8),
+            Text('等待支付中...'),
+          ],
+        ),
+        const SizedBox(height: 24),
+        TextButton(
+          onPressed: () {
+            _pollTimer?.cancel();
+            _closeOverlay();
+          },
+          child: const Text('取消支付'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSuccessOverlayContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: const BoxDecoration(
+            color: Colors.green,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.check, color: Colors.white, size: 48),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          '支付成功',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        const Text('您的会员权益已生效'),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: () {
+            _closeOverlay();
+            Navigator.of(context).pop();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: LinkDropColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: const Text('完成'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusOverlayContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          _overlayTitle ?? '提示',
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _overlayMessage ?? '',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: LinkDropColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 24),
+        TextButton(
+          onPressed: _closeOverlay,
+          child: const Text('确定'),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -382,12 +538,14 @@ class _PaymentPageState extends State<PaymentPage> {
 
     return Scaffold(
       backgroundColor: isDark ? LinkDropColors.zinc950 : LinkDropColors.zinc50,
-      body: Container(
-        decoration: BoxDecoration(
-          color: isDark ? LinkDropColors.zinc950 : LinkDropColors.zinc50,
-        ),
-        child: CustomScrollView(
-          slivers: [
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? LinkDropColors.zinc950 : LinkDropColors.zinc50,
+            ),
+            child: CustomScrollView(
+              slivers: [
             // 顶部标题栏
             SliverToBoxAdapter(
               child: Padding(
@@ -623,8 +781,11 @@ class _PaymentPageState extends State<PaymentPage> {
                 ),
               ),
             ),
-          ],
-        ),
+              ],
+            ),
+          ),
+          if (_overlayKind != null) _buildOverlay(isDark),
+        ],
       ),
     );
   }

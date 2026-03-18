@@ -350,9 +350,9 @@ class TranslationsNetworkInterfacesPageEn {
   /// en: 'Network Interfaces'
   String get title => 'Network Interfaces';
 
-  /// en: 'By default, LocalSend uses all available network interfaces. You can exclude unwanted networks here. You need to restart the server to apply the changes.'
+  /// en: 'By default, LinkDrop uses all available network interfaces. You can exclude unwanted networks here. You need to restart the server to apply the changes.'
   String get info =>
-      'By default, LocalSend uses all available network interfaces. You can exclude unwanted networks here. You need to restart the server to apply the changes.';
+      'By default, LinkDrop uses all available network interfaces. You can exclude unwanted networks here. You need to restart the server to apply the changes.';
 
   /// en: 'Preview'
   String get preview => 'Preview';
@@ -456,8 +456,8 @@ class TranslationsReceiveOptionsPageEn {
   /// en: 'Save to folder'
   String get destination => _root.settingsTab.receive.destination;
 
-  /// en: '(LocalSend folder)'
-  String get appDirectory => '(LocalSend folder)';
+  /// en: '(LinkDrop folder)'
+  String get appDirectory => '(LinkDrop folder)';
 
   /// en: 'Save media to gallery'
   String get saveToGallery => _root.settingsTab.receive.saveToGallery;
@@ -553,8 +553,8 @@ class TranslationsWebSharePageEn {
   /// en: 'The PIN is "{pin}"'
   String pinHint({required Object pin}) => 'The PIN is "${pin}"';
 
-  /// en: 'LocalSend uses a self-signed certificate. You need to accept it in your browser.'
-  String get encryptionHint => 'LocalSend uses a self-signed certificate. You need to accept it in your browser.';
+  /// en: 'LinkDrop uses a self-signed certificate. You need to accept it in your browser.'
+  String get encryptionHint => 'LinkDrop uses a self-signed certificate. You need to accept it in your browser.';
 
   /// en: 'Pending requests: {n}'
   String pendingRequests({required Object n}) => 'Pending requests: ${n}';
@@ -568,16 +568,16 @@ class TranslationsAboutPageEn {
 
   // Translations
 
-  /// en: 'About LocalSend'
-  String get title => 'About LocalSend';
+  /// en: 'About LinkDrop'
+  String get title => 'About LinkDrop';
 
   List<String> get description => [
-    'LocalSend is a free, open-source app that allows you to securely share files and messages with nearby devices over your local network without needing an internet connection.',
-    'This app is available on Android, iOS, macOS, Windows and Linux. You can find all download options on the official homepage.',
+    'LinkDrop is a cross-platform LAN file transfer tool, based on LocalSend.',
+    'Official website: https://linkdrop.dearlinkcn.top/',
   ];
 
-  /// en: 'Author'
-  String get author => 'Author';
+  /// en: 'LeLiu'
+  String get author => 'LeLiu';
 
   /// en: 'Contributors'
   String get contributors => 'Contributors';
@@ -597,11 +597,11 @@ class TranslationsDonationPageEn {
 
   // Translations
 
-  /// en: 'Donate'
-  String get title => 'Donate';
+  /// en: 'Membership'
+  String get title => 'Membership';
 
-  /// en: 'LocalSend is free, open-source and without any ads. If you like the app, you can support the development with a donation.'
-  String get info => 'LocalSend is free, open-source and without any ads. If you like the app, you can support the development with a donation.';
+  /// en: 'LinkDrop offers membership services. Upgrade to enjoy more premium features.'
+  String get info => 'LinkDrop offers membership services. Upgrade to enjoy more premium features.';
 
   /// en: 'Donate {amount}'
   String donate({required Object amount}) => 'Donate ${amount}';
@@ -768,8 +768,8 @@ class TranslationsTrayEn {
   /// en: 'Open'
   String get open => _root.general.open;
 
-  /// en: 'Quit LocalSend'
-  String get close => 'Quit LocalSend';
+  /// en: 'Quit LinkDrop'
+  String get close => 'Quit LinkDrop';
 
   /// en: 'Exit'
   String get closeWindows => 'Exit';
@@ -1051,8 +1051,8 @@ class TranslationsSettingsTabGeneralEn {
   /// en: 'Autostart: Start hidden'
   String get launchMinimized => 'Autostart: Start hidden';
 
-  /// en: 'Show LocalSend in context menu'
-  String get showInContextMenu => 'Show LocalSend in context menu';
+  /// en: 'Show LinkDrop in context menu'
+  String get showInContextMenu => 'Show LinkDrop in context menu';
 
   /// en: 'Animations'
   String get animations => 'Animations';
@@ -1178,8 +1178,8 @@ class TranslationsSettingsTabOtherEn {
   /// en: 'Other'
   String get title => 'Other';
 
-  /// en: 'Support LocalSend'
-  String get support => 'Support LocalSend';
+  /// en: 'Support LinkDrop'
+  String get support => 'Support LinkDrop';
 
   /// en: 'Donate'
   String get donate => 'Donate';
@@ -1543,9 +1543,9 @@ class TranslationsDialogsLocalNetworkUnauthorizedEn {
   /// en: 'No permission'
   String get title => _root.dialogs.noPermission.title;
 
-  /// en: 'LocalSend can't find other devices without having the permission to scan the local network. Please grant this permission in the settings.'
+  /// en: 'LinkDrop can't find other devices without having the permission to scan the local network. Please grant this permission in the settings.'
   String get description =>
-      'LocalSend can\'t find other devices without having the permission to scan the local network. Please grant this permission in the settings.';
+      'LinkDrop can\'t find other devices without having the permission to scan the local network. Please grant this permission in the settings.';
 
   /// en: 'Settings'
   String get gotoSettings => 'Settings';
@@ -1712,8 +1712,8 @@ class TranslationsDialogsSendModeHelpEn {
   /// en: 'Sends files to multiple recipients. Selection will not be cleared after finished files transfer.'
   String get multiple => 'Sends files to multiple recipients. Selection will not be cleared after finished files transfer.';
 
-  /// en: 'Recipients who do not have LocalSend installed can download the selected files by opening the link in their browser.'
-  String get link => 'Recipients who do not have LocalSend installed can download the selected files by opening the link in their browser.';
+  /// en: 'Recipients who do not have LinkDrop installed can download the selected files by opening the link in their browser.'
+  String get link => 'Recipients who do not have LinkDrop installed can download the selected files by opening the link in their browser.';
 }
 
 // Path: dialogs.zoom

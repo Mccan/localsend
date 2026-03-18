@@ -1,7 +1,7 @@
 import 'package:common/model/device.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
-import 'package:localsend_app/util/ip_helper.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/util/ip_helper.dart';
 
 class DeviceNode extends StatelessWidget {
   final Device device;

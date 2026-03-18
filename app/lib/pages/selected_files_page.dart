@@ -2,15 +2,15 @@ import 'dart:convert';
 
 import 'package:common/model/file_type.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/cross_file.dart';
-import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
-import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
-import 'package:localsend_app/util/file_size_helper.dart';
-import 'package:localsend_app/util/native/open_file.dart';
-import 'package:localsend_app/widget/dialogs/message_input_dialog.dart';
-import 'package:localsend_app/widget/file_thumbnail.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
+import 'package:linkdrop_app/model/cross_file.dart';
+import 'package:linkdrop_app/provider/selection/selected_sending_files_provider.dart';
+import 'package:linkdrop_app/provider/settings_provider.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/util/file_size_helper.dart';
+import 'package:linkdrop_app/util/native/open_file.dart';
+import 'package:linkdrop_app/widget/dialogs/message_input_dialog.dart';
+import 'package:linkdrop_app/widget/file_thumbnail.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// 已选文件页面

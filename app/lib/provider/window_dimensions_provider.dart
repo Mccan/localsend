@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:localsend_app/provider/persistence_provider.dart';
+import 'package:linkdrop_app/provider/persistence_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:window_manager/window_manager.dart';

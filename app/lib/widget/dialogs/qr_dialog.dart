@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/theme.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
-import 'package:localsend_app/model/state/send/web/web_send_state.dart';
-import 'package:localsend_app/provider/network/server/server_provider.dart';
+import 'package:linkdrop_app/config/theme.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/model/state/send/web/web_send_state.dart';
+import 'package:linkdrop_app/provider/network/server/server_provider.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';

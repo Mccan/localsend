@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
 
 class FileTypeCard extends StatelessWidget {
   final IconData icon;

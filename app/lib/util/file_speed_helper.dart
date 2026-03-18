@@ -1,4 +1,4 @@
-import 'package:localsend_app/gen/strings.g.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
 
 const _millisecondsPerSecond = 1000;
 const _secondsPerMinute = 60;

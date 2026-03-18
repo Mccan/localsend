@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
 import 'package:routerino/routerino.dart';
 
 class SettingsTextField extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/model/user.dart';
-import 'package:localsend_app/pages/login_page.dart';
-import 'package:localsend_app/pages/payment_page.dart';
-import 'package:localsend_app/provider/auth_provider.dart';
+import 'package:linkdrop_app/model/user.dart';
+import 'package:linkdrop_app/pages/login_page.dart';
+import 'package:linkdrop_app/pages/payment_page.dart';
+import 'package:linkdrop_app/provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 /// 权限检查结果
@@ -63,7 +63,7 @@ class PermissionChecker {
     // 直接跳转支付页，不显示确认弹窗
     await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (_) => const PaymentPage(),
+        builder: (_) => PaymentPage(),
         fullscreenDialog: true,
       ),
     );

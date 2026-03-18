@@ -4,22 +4,22 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:localsend_app/config/init.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/user.dart';
-import 'package:localsend_app/pages/home_page_controller.dart';
-import 'package:localsend_app/pages/login_page.dart';
-import 'package:localsend_app/pages/payment_page.dart';
-import 'package:localsend_app/pages/receive_page.dart';
-import 'package:localsend_app/pages/send_page.dart';
-import 'package:localsend_app/pages/settings_page.dart';
-import 'package:localsend_app/provider/auth_provider.dart';
-import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
-import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
-import 'package:localsend_app/util/native/cross_file_converters.dart';
-import 'package:localsend_app/widget/responsive_builder.dart';
-import 'package:localsend_app/widget/window_title_bar.dart';
+import 'package:linkdrop_app/config/init.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
+import 'package:linkdrop_app/model/user.dart';
+import 'package:linkdrop_app/pages/home_page_controller.dart';
+import 'package:linkdrop_app/pages/login_page.dart';
+import 'package:linkdrop_app/pages/payment_page.dart';
+import 'package:linkdrop_app/pages/receive_page.dart';
+import 'package:linkdrop_app/pages/send_page.dart';
+import 'package:linkdrop_app/pages/settings_page.dart';
+import 'package:linkdrop_app/provider/auth_provider.dart';
+import 'package:linkdrop_app/provider/selection/selected_sending_files_provider.dart';
+import 'package:linkdrop_app/provider/settings_provider.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/util/native/cross_file_converters.dart';
+import 'package:linkdrop_app/widget/responsive_builder.dart';
+import 'package:linkdrop_app/widget/window_title_bar.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -219,7 +219,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: PopupMenuButton<String>(
-                                    offset: const Offset(40, -120),
+                                    offset: const Offset(120, -180),
                                     tooltip: '',
                                     itemBuilder: (context) => [
                                       if (isAuthenticated && user != null) ...[
@@ -325,7 +325,7 @@ class _LinkDropHomePageState extends State<LinkDropHomePage> with Refena {
                                       } else if (value == 'payment') {
                                         await Navigator.of(context).push(
                                           MaterialPageRoute(
-                                            builder: (context) => const PaymentPage(),
+                                            builder: (context) => PaymentPage(),
                                             fullscreenDialog: true,
                                           ),
                                         );

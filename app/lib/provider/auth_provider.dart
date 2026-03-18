@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:localsend_app/model/user.dart';
-import 'package:localsend_app/services/api_service.dart';
+import 'package:linkdrop_app/model/user.dart';
+import 'package:linkdrop_app/services/api_service.dart';
 
 /// 认证状态
 class AuthState {

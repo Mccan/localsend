@@ -1,14 +1,26 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:localsend_app/model/payment_order.dart';
-import 'package:localsend_app/model/user.dart';
-import 'package:localsend_app/util/crypto_helper.dart';
+import 'package:linkdrop_app/model/payment_order.dart';
+import 'package:linkdrop_app/model/user.dart';
+import 'package:linkdrop_app/util/crypto_helper.dart';
+
+abstract class PaymentApi {
+  Future<List<RechargeItem>> getRechargeItems({String? membershipType, int? projectId});
+
+  Future<MembershipPriceResponse?> getMembershipPrices({String? projectCode});
+
+  Future<PaymentOrder?> createRechargeOrder(int itemId);
+
+  Future<PaymentOrder?> createPayment(int orderId);
+
+  Future<PaymentOrder?> queryPaymentStatus(String orderNo);
+}
 
 /// API 服务
 ///
 /// 封装所有与后端 API 的通信
-class ApiService {
+class ApiService implements PaymentApi {
   static String get _baseUrl {
     if (kDebugMode) {
       return 'http://localhost:3000/api';

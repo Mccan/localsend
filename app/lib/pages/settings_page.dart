@@ -1,21 +1,21 @@
 import 'package:common/model/device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/persistence/color_mode.dart';
-import 'package:localsend_app/pages/language_page.dart';
-import 'package:localsend_app/pages/login_page.dart';
-import 'package:localsend_app/pages/payment_page.dart';
-import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
-import 'package:localsend_app/pages/widget/settings_group.dart';
-import 'package:localsend_app/pages/widget/settings_item.dart';
-import 'package:localsend_app/provider/auth_provider.dart';
-import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/theme/linkdrop_theme.dart';
-import 'package:localsend_app/util/device_type_ext.dart';
-import 'package:localsend_app/util/native/context_menu_helper.dart';
-import 'package:localsend_app/util/native/pick_directory_path.dart';
-import 'package:localsend_app/util/native/platform_check.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
+import 'package:linkdrop_app/model/persistence/color_mode.dart';
+import 'package:linkdrop_app/pages/language_page.dart';
+import 'package:linkdrop_app/pages/login_page.dart';
+import 'package:linkdrop_app/pages/payment_page.dart';
+import 'package:linkdrop_app/pages/tabs/settings_tab_controller.dart';
+import 'package:linkdrop_app/pages/widget/settings_group.dart';
+import 'package:linkdrop_app/pages/widget/settings_item.dart';
+import 'package:linkdrop_app/provider/auth_provider.dart';
+import 'package:linkdrop_app/provider/settings_provider.dart';
+import 'package:linkdrop_app/theme/linkdrop_theme.dart';
+import 'package:linkdrop_app/util/device_type_ext.dart';
+import 'package:linkdrop_app/util/native/context_menu_helper.dart';
+import 'package:linkdrop_app/util/native/pick_directory_path.dart';
+import 'package:linkdrop_app/util/native/platform_check.dart';
 import 'package:provider/provider.dart' as provider;
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -153,7 +153,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         onTap: () async {
                           await Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => const PaymentPage(),
+                              builder: (context) => PaymentPage(),
                               fullscreenDialog: true,
                             ),
                           );
@@ -204,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             // 登录成功后自动跳转到支付页面
                             await Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => const PaymentPage(),
+                                builder: (context) => PaymentPage(),
                                 fullscreenDialog: true,
                               ),
                             );

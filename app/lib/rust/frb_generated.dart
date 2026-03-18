@@ -7,12 +7,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:localsend_app/rust/api/crypto.dart';
-import 'package:localsend_app/rust/api/logging.dart';
-import 'package:localsend_app/rust/api/model.dart';
-import 'package:localsend_app/rust/api/webrtc.dart';
-import 'package:localsend_app/rust/frb_generated.dart';
-import 'package:localsend_app/rust/frb_generated.io.dart' if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'package:linkdrop_app/rust/api/crypto.dart';
+import 'package:linkdrop_app/rust/api/logging.dart';
+import 'package:linkdrop_app/rust/api/model.dart';
+import 'package:linkdrop_app/rust/api/webrtc.dart';
+import 'package:linkdrop_app/rust/frb_generated.dart';
+import 'package:linkdrop_app/rust/frb_generated.io.dart' if (dart.library.js_interop) 'frb_generated.web.dart';
 import 'package:uuid/uuid.dart';
 
 /// Main entrypoint of the Rust API

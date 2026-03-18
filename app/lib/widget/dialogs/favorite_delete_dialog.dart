@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/persistence/favorite_device.dart';
+import 'package:linkdrop_app/gen/strings.g.dart';
+import 'package:linkdrop_app/model/persistence/favorite_device.dart';
 import 'package:routerino/routerino.dart';
 
 class FavoriteDeleteDialog extends StatelessWidget {

@@ -1,9 +1,9 @@
-name: localsend_app
-description: An open source cross-platform alternative to AirDrop
-homepage: https://localsend.org/
+name: linkdrop_app
+description: LinkDrop - 跨平台热点、局域网传输工具
+homepage: https://linkdrop.dearlinkcn.top/
 publish_to: "none"
 
-version: 1.17.0+58
+version: 1.2.0+1
 
 environment:
   flutter: ^3.25.0
@@ -91,6 +91,8 @@ dependencies:
 dev_dependencies:
   build_runner: 2.7.1
   dart_mappable_builder: 4.6.0
+  flutter_test:
+    sdk: flutter
   flutter_gen_runner: 5.12.0
   flutter_lints: 5.0.0
   freezed: 3.2.3
