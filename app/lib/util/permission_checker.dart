@@ -9,8 +9,10 @@ import 'package:provider/provider.dart';
 enum PermissionStatus {
   /// 允许访问
   granted,
+
   /// 需要登录
   requiresLogin,
+
   /// 需要开通会员
   requiresMembership,
 }
@@ -31,90 +33,49 @@ class PermissionChecker {
 
   /// 检查发送页权限
   ///
-  /// 发送页只需要登录即可使用
+  /// 发送页需要登录且开通会员才能使用
   static PermissionStatus checkSendPermission(User? user, bool isAuthenticated) {
     if (!isAuthenticated || user == null) {
       return PermissionStatus.requiresLogin;
     }
+    if (!user.isVipActive) {
+      return PermissionStatus.requiresMembership;
+    }
     return PermissionStatus.granted;
   }
 
-  /// 显示登录对话框
+  /// 直接跳转到登录页面
   /// 返回登录是否成功
   static Future<bool> showLoginDialog(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('需要登录'),
-        content: const Text('使用该功能需要先登录账号，是否立即登录？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(dialogContext).pop(false);
-              // 使用 root navigator 跳转登录页
-              final loginResult = await Navigator.of(context, rootNavigator: true).push<bool>(
-                MaterialPageRoute(
-                  builder: (_) => const LoginPage(),
-                  fullscreenDialog: true,
-                ),
-              );
-              // 登录完成后返回结果
-              if (context.mounted) {
-                Navigator.of(dialogContext, rootNavigator: true).pop(loginResult == true);
-              }
-            },
-            child: const Text('去登录'),
-          ),
-        ],
+    // 直接跳转登录页，不显示确认弹窗
+    final loginResult = await Navigator.of(context, rootNavigator: true).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => const LoginPage(),
+        fullscreenDialog: true,
       ),
     );
-    return result == true;
+    return loginResult == true;
   }
 
-  /// 显示开通会员对话框
+  /// 直接跳转到开通会员页面
   /// 返回是否开通成功
   static Future<bool> showMembershipDialog(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('需要开通会员'),
-        content: const Text('发送文件功能需要开通会员才能使用，是否立即开通？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(dialogContext).pop(false);
-              // 使用 root navigator 跳转支付页
-              await Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (_) => const PaymentPage(),
-                  fullscreenDialog: true,
-                ),
-              );
-              // 支付完成后刷新用户信息并返回结果
-              if (context.mounted) {
-                final authProvider = context.read<AuthProvider>();
-                await authProvider.refreshUser();
-                final user = authProvider.user;
-                final isVip = user?.isVipActive ?? false;
-                Navigator.of(dialogContext, rootNavigator: true).pop(isVip);
-              }
-            },
-            child: const Text('去开通'),
-          ),
-        ],
+    // 直接跳转支付页，不显示确认弹窗
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (_) => const PaymentPage(),
+        fullscreenDialog: true,
       ),
     );
-    return result == true;
+    // 支付完成后刷新用户信息并返回结果
+    if (context.mounted) {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.refreshUser();
+      final user = authProvider.user;
+      final isVip = user?.isVipActive ?? false;
+      return isVip;
+    }
+    return false;
   }
 }
 
@@ -122,11 +83,16 @@ class PermissionChecker {
 ///
 /// 用于 StatefulWidget 中快速集成权限控制
 /// 在 initState 中调用 checkPermission 方法
+/// 自动监听 AuthProvider 变化，登录状态改变时重新检查权限
 mixin PermissionControlMixin<T extends StatefulWidget> on State<T> {
   bool _isCheckingPermission = true;
   bool _hasPermission = false;
   bool _shouldShowLogin = false;
   bool _shouldShowMembership = false;
+
+  /// 用于追踪认证状态变化
+  bool? _lastIsAuthenticated;
+  User? _lastUser;
 
   /// 子类需要实现的权限检查方法
   /// 返回需要的权限类型
@@ -136,6 +102,29 @@ mixin PermissionControlMixin<T extends StatefulWidget> on State<T> {
   void initState() {
     super.initState();
     _checkPermission();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // 使用 listen: true 建立监听关系，当 AuthProvider 状态变化时会触发重建
+    final authProvider = Provider.of<AuthProvider>(context, listen: true);
+    final currentIsAuthenticated = authProvider.isAuthenticated;
+    final currentUser = authProvider.user;
+
+    // 首次初始化或状态发生变化时重新检查权限
+    if (_lastIsAuthenticated != null && (_lastIsAuthenticated != currentIsAuthenticated || _lastUser?.id != currentUser?.id)) {
+      // 使用微任务延迟执行，避免在 didChangeDependencies 中同步调用 setState
+      Future.microtask(() {
+        if (mounted) {
+          recheckPermission();
+        }
+      });
+    }
+
+    _lastIsAuthenticated = currentIsAuthenticated;
+    _lastUser = currentUser;
   }
 
   /// 重新检查权限
@@ -155,9 +144,14 @@ mixin PermissionControlMixin<T extends StatefulWidget> on State<T> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
+      // 使用 read 获取最新状态（不建立监听，避免重复触发）
       final authProvider = context.read<AuthProvider>();
       final user = authProvider.user;
       final isAuthenticated = authProvider.isAuthenticated;
+
+      // 更新追踪的状态
+      _lastIsAuthenticated = isAuthenticated;
+      _lastUser = user;
 
       // 检查权限状态
       final status = _getPermissionStatus(user, isAuthenticated);

@@ -25,15 +25,22 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _loadSavedUsername();
+    _loadSavedCredentials();
   }
 
-  Future<void> _loadSavedUsername() async {
+  Future<void> _loadSavedCredentials() async {
     final authProvider = provider.Provider.of<AuthProvider>(context, listen: false);
     final savedUsername = await authProvider.getSavedUsername();
+    final savedPassword = await authProvider.getSavedPassword();
+
     if (savedUsername != null && savedUsername.isNotEmpty) {
       setState(() {
         _usernameController.text = savedUsername;
+        // 如果有保存的密码，也自动填充
+        if (savedPassword != null && savedPassword.isNotEmpty) {
+          _passwordController.text = savedPassword;
+          _rememberMe = true; // 有保存的密码时，默认勾选记住我
+        }
       });
     }
   }
@@ -62,7 +69,6 @@ class _LoginPageState extends State<LoginPage> {
       success = await authProvider.login(
         _usernameController.text.trim(),
         _passwordController.text,
-        rememberMe: _rememberMe,
       );
     }
 
@@ -228,22 +234,7 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(height: 16),
                         ],
 
-                        // 登录模式：记住我
-                        if (!_isRegisterMode) ...[
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _rememberMe,
-                                activeColor: LinkDropColors.primary,
-                                onChanged: (value) {
-                                  setState(() => _rememberMe = value ?? false);
-                                },
-                              ),
-                              const Text('记住我 (7天免登录)'),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                        ],
+
 
                         // 错误提示
                         if (authProvider.error != null) ...[

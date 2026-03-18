@@ -38,10 +38,18 @@ class PaymentOrder {
 
   /// 从 JSON 创建订单
   factory PaymentOrder.fromJson(Map<String, dynamic> json) {
+    // 辅助函数：解析价格为 double
+    double parsePrice(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
     return PaymentOrder(
       orderId: json['order_id']?.toString() ?? json['id']?.toString() ?? '',
       orderNo: json['order_no'] ?? '',
-      amount: (json['amount'] ?? json['price'] ?? 0).toDouble(),
+      amount: parsePrice(json['amount'] ?? json['price']),
       qrCode: json['qr_code'] ?? json['qrCode'],
       payUrl: json['pay_url'] ?? json['payUrl'],
       itemName: json['item_name'] ?? json['itemName'] ?? '',

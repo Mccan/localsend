@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:localsend_app/model/user.dart';
 import 'package:localsend_app/model/payment_order.dart';
+import 'package:localsend_app/model/user.dart';
+import 'package:localsend_app/util/crypto_helper.dart';
 
 /// API 服务
 ///
@@ -19,6 +20,7 @@ class ApiService {
   static const String _accessTokenKey = 'linkdrop_access_token';
   static const String _refreshTokenKey = 'linkdrop_refresh_token';
   static const String _savedUsernameKey = 'linkdrop_saved_username';
+  static const String _savedPasswordKey = 'linkdrop_saved_password';
 
   late final Dio _dio;
   late final FlutterSecureStorage _storage;
@@ -168,17 +170,56 @@ class ApiService {
     }
   }
 
+  // ==================== 保存的密码（加密存储）====================
+
+  /// 获取保存的加密密码并解密
+  Future<String?> getSavedPassword() async {
+    try {
+      final encryptedPassword = await _storage.read(key: _savedPasswordKey);
+      if (encryptedPassword == null || encryptedPassword.isEmpty) {
+        return null;
+      }
+      // 解密密码
+      final cryptoHelper = CryptoHelper();
+      return await cryptoHelper.decryptText(encryptedPassword);
+    } catch (e) {
+      debugPrint('读取保存的密码失败: $e');
+      return null;
+    }
+  }
+
+  /// 保存密码（自动加密）
+  Future<void> setSavedPassword(String password) async {
+    try {
+      final cryptoHelper = CryptoHelper();
+      final encryptedPassword = await cryptoHelper.encryptText(password);
+      if (encryptedPassword != null) {
+        await _storage.write(key: _savedPasswordKey, value: encryptedPassword);
+      }
+    } catch (e) {
+      debugPrint('保存密码失败: $e');
+    }
+  }
+
+  /// 清除保存的密码
+  Future<void> clearSavedPassword() async {
+    try {
+      await _storage.delete(key: _savedPasswordKey);
+    } catch (e) {
+      debugPrint('清除保存的密码失败: $e');
+    }
+  }
+
   // ==================== 用户认证 ====================
 
   /// 用户登录
-  Future<LoginResult> login(String username, String password, {bool rememberMe = false}) async {
+  Future<LoginResult> login(String username, String password) async {
     try {
       final response = await _dio.post(
         '/auth/login',
         data: {
           'username': username,
           'password': password,
-          'remember_me': rememberMe,
         },
       );
 
@@ -187,6 +228,8 @@ class ApiService {
         await setTokens(data['accessToken'], data['refreshToken']);
         // 保存用户名以便下次自动填充
         await setSavedUsername(username);
+        // 保存加密后的密码
+        await setSavedPassword(password);
         return LoginResult(
           success: true,
           user: User.fromJson(data),
@@ -283,9 +326,24 @@ class ApiService {
   // ==================== 充值商品 ====================
 
   /// 获取充值商品列表
-  Future<List<RechargeItem>> getRechargeItems() async {
+  /// 获取充值商品列表
+  ///
+  /// [membershipType] 会员类型：'global' 大会员, 'project' 子会员
+  /// [projectId] 项目ID，null 表示获取大会员套餐，有值表示获取对应项目的子会员套餐
+  Future<List<RechargeItem>> getRechargeItems({String? membershipType, int? projectId}) async {
     try {
-      final response = await _dio.get('/recharge/items');
+      final queryParams = <String, dynamic>{};
+      if (membershipType != null) {
+        queryParams['membership_type'] = membershipType;
+      }
+      if (projectId != null) {
+        queryParams['project_id'] = projectId;
+      }
+
+      final response = await _dio.get(
+        '/recharge/items',
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
       if (response.data['success'] == true) {
         final items = response.data['data'] as List;
         return items.map((item) => RechargeItem.fromJson(item)).toList();
@@ -294,6 +352,30 @@ class ApiService {
     } catch (e) {
       debugPrint('获取充值商品失败: $e');
       return [];
+    }
+  }
+
+  /// 获取会员价格信息（统一接口）
+  ///
+  /// [projectCode] 项目代码，如 'linkdrop'
+  Future<MembershipPriceResponse?> getMembershipPrices({String? projectCode}) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (projectCode != null) {
+        queryParams['project_code'] = projectCode;
+      }
+
+      final response = await _dio.get(
+        '/membership/prices',
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
+      if (response.data['success'] == true) {
+        return MembershipPriceResponse.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('获取会员价格失败: $e');
+      return null;
     }
   }
 
@@ -402,35 +484,154 @@ class LoginResult {
   });
 }
 
+/// 会员价格响应
+class MembershipPriceResponse {
+  final GlobalMembershipInfo? global;
+  final List<RechargeItem> globalItems;
+  final ProjectMembershipInfo? project;
+  final List<RechargeItem> projectItems;
+
+  MembershipPriceResponse({
+    this.global,
+    this.globalItems = const [],
+    this.project,
+    this.projectItems = const [],
+  });
+
+  factory MembershipPriceResponse.fromJson(Map<String, dynamic> json) {
+    double parsePrice(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    return MembershipPriceResponse(
+      global: json['global'] != null ? GlobalMembershipInfo.fromJson(json['global']) : null,
+      globalItems: json['global_items'] != null ? (json['global_items'] as List).map((item) => RechargeItem.fromJson(item)).toList() : [],
+      project: json['project'] != null ? ProjectMembershipInfo.fromJson(json['project']) : null,
+      projectItems: json['project_items'] != null ? (json['project_items'] as List).map((item) => RechargeItem.fromJson(item)).toList() : [],
+    );
+  }
+}
+
+/// 大会员信息
+class GlobalMembershipInfo {
+  final int itemId;
+  final double price;
+  final double originalPrice;
+  final String name;
+  final List<String> benefits;
+
+  GlobalMembershipInfo({
+    required this.itemId,
+    required this.price,
+    required this.originalPrice,
+    required this.name,
+    required this.benefits,
+  });
+
+  factory GlobalMembershipInfo.fromJson(Map<String, dynamic> json) {
+    double parsePrice(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    return GlobalMembershipInfo(
+      itemId: json['item_id'] ?? 0,
+      price: parsePrice(json['price']),
+      originalPrice: parsePrice(json['original_price']),
+      name: json['name'] ?? '大会员',
+      benefits: (json['benefits'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+    );
+  }
+}
+
+/// 项目会员信息
+class ProjectMembershipInfo {
+  final int projectId;
+  final String projectCode;
+  final String projectName;
+  final double price;
+  final double originalPrice;
+
+  ProjectMembershipInfo({
+    required this.projectId,
+    required this.projectCode,
+    required this.projectName,
+    required this.price,
+    required this.originalPrice,
+  });
+
+  factory ProjectMembershipInfo.fromJson(Map<String, dynamic> json) {
+    double parsePrice(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    return ProjectMembershipInfo(
+      projectId: json['project_id'] ?? 0,
+      projectCode: json['project_code'] ?? '',
+      projectName: json['project_name'] ?? '',
+      price: parsePrice(json['price']),
+      originalPrice: parsePrice(json['original_price']),
+    );
+  }
+}
+
 /// 充值商品
 class RechargeItem {
   final int id;
   final String name;
+  final String? description;
   final double price;
+  final double? originalPrice;
   final int? days;
   final int downloadCount;
   final int dailyLimit;
   final int type; // 0: 会员套餐, 1: 下载包
+  final String membershipType; // 'global': 大会员, 'project': 子会员
+  final int? projectId; // NULL表示大会员，有值表示子会员
 
   const RechargeItem({
     required this.id,
     required this.name,
+    this.description,
     required this.price,
+    this.originalPrice,
     this.days,
     this.downloadCount = 0,
     this.dailyLimit = 30,
     this.type = 0,
+    this.membershipType = 'project',
+    this.projectId,
   });
 
   factory RechargeItem.fromJson(Map<String, dynamic> json) {
+    // 辅助函数：将各种类型转换为 double
+    double parsePrice(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
     return RechargeItem(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
+      description: json['description'],
+      price: parsePrice(json['price']),
+      originalPrice: json['original_price'] != null ? parsePrice(json['original_price']) : null,
       days: json['days'],
       downloadCount: json['download_count'] ?? 0,
       dailyLimit: json['daily_limit'] ?? 30,
       type: json['type'] ?? 0,
+      membershipType: json['membership_type'] ?? 'project',
+      projectId: json['project_id'],
     );
   }
 
@@ -439,4 +640,10 @@ class RechargeItem {
 
   /// 是否为永久会员
   bool get isPermanent => days == null;
+
+  /// 是否为大会员
+  bool get isGlobal => membershipType == 'global';
+
+  /// 是否为子会员
+  bool get isProject => membershipType == 'project';
 }

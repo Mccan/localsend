@@ -81,12 +81,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// 用户登录
-  Future<bool> login(String username, String password, {bool rememberMe = false}) async {
+  Future<bool> login(String username, String password) async {
     _state = _state.copyWith(isLoading: true, error: null);
     notifyListeners();
 
     try {
-      final result = await _apiService.login(username, password, rememberMe: rememberMe);
+      final result = await _apiService.login(username, password);
 
       if (result.success && result.user != null) {
         _state = AuthState(
@@ -162,6 +162,11 @@ class AuthProvider extends ChangeNotifier {
   /// 获取保存的用户名
   Future<String?> getSavedUsername() async {
     return await _apiService.getSavedUsername();
+  }
+
+  /// 获取保存的密码（已解密）
+  Future<String?> getSavedPassword() async {
+    return await _apiService.getSavedPassword();
   }
 
   /// 刷新用户信息

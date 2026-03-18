@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
+import 'package:localsend_app/theme/linkdrop_theme.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/ui/dynamic_colors.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -14,6 +15,11 @@ final _borderRadius = BorderRadius.circular(5);
 double get desktopPaddingFix => checkPlatformIsDesktop() ? 8 : 0;
 
 ThemeData getTheme(ColorMode colorMode, Brightness brightness, DynamicColors? dynamicColors) {
+  // LinkDrop 模式使用专门的金棕色主题
+  if (colorMode == ColorMode.localsend) {
+    return getLinkDropTheme(brightness);
+  }
+
   if (colorMode == ColorMode.yaru) {
     return _getYaruTheme(brightness);
   }
@@ -116,44 +122,24 @@ Future<void> updateSystemOverlayStyleWithBrightness(Brightness brightness) async
   }
 }
 
-extension ThemeDataExt on ThemeData {
-  /// This is the actual [cardColor] being used.
-  Color get cardColorWithElevation {
-    return ElevationOverlay.applySurfaceTint(cardColor, colorScheme.surfaceTint, 1);
-  }
-}
-
-extension ColorSchemeExt on ColorScheme {
-  Color get warning {
-    return Colors.orange;
-  }
-
-  Color? get secondaryContainerIfDark {
-    return brightness == Brightness.dark ? secondaryContainer : null;
-  }
-
-  Color? get onSecondaryContainerIfDark {
-    return brightness == Brightness.dark ? onSecondaryContainer : null;
-  }
-}
-
 extension InputDecorationThemeExt on InputDecorationThemeData {
   BorderRadius get borderRadius => _borderRadius;
 }
 
 ColorScheme _determineColorScheme(ColorMode mode, Brightness brightness, DynamicColors? dynamicColors) {
+  // 默认使用 LinkDrop 金棕色主题
   final defaultColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.teal,
+    seedColor: LinkDropColors.primary,
     brightness: brightness,
   );
 
   final colorScheme = switch (mode) {
     ColorMode.system => brightness == Brightness.light ? dynamicColors?.light : dynamicColors?.dark,
-    ColorMode.localsend => null,
+    ColorMode.localsend => throw 'Should not reach here', // handled in getTheme()
     ColorMode.oled => (dynamicColors?.dark ?? defaultColorScheme).copyWith(
       surface: Colors.black,
     ),
-    ColorMode.yaru => throw 'Should reach here',
+    ColorMode.yaru => throw 'Should not reach here', // handled in getTheme()
   };
 
   return colorScheme ?? defaultColorScheme;
@@ -172,8 +158,6 @@ ThemeData _getYaruTheme(Brightness brightness) {
     borderSide: BorderSide(color: colorScheme.secondaryContainer),
     borderRadius: _borderRadius,
   );
-
-  InputDecorationThemeData;
 
   return baseTheme.copyWith(
     navigationBarTheme: colorScheme.brightness == Brightness.dark

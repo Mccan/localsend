@@ -239,7 +239,7 @@ ThemeData getLinkDropTheme(Brightness brightness) {
   );
 }
 
-/// ThemeData 扩展
+/// ThemeData 扩展 - 导出供其他模块使用
 extension ThemeDataExt on ThemeData {
   /// This is the actual [cardColor] being used.
   Color get cardColorWithElevation {
@@ -247,7 +247,7 @@ extension ThemeDataExt on ThemeData {
   }
 }
 
-/// ColorScheme 扩展
+/// ColorScheme 扩展 - 导出供其他模块使用
 extension ColorSchemeExt on ColorScheme {
   Color get warning {
     return Colors.orange;
